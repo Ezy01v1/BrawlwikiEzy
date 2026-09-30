@@ -1,7 +1,9 @@
 import type { Health } from '@brawlwiki/shared';
 import express, { type Express, type Request } from 'express';
+import type { Store } from 'express-rate-limit';
 import helmet from 'helmet';
 import { errorHandler, notFoundHandler } from './http/error-handler';
+import { createGeneralLimiter, createUpstreamGuard } from './http/rate-limit';
 import { requestId } from './http/request-id';
 import { sendData } from './http/respond';
 import type { Logger } from './logger';
@@ -13,19 +15,28 @@ export interface AppDeps {
   health: () => Health | Promise<Health>;
   services?: Services;
   contextFor?: (req: Request) => RequestContext;
+  rateLimit?: { generalPerMinute: number; upstreamPerMinute: number; store?: Store };
 }
 
 export function createApp(deps: AppDeps): Express {
   const app = express();
   app.disable('x-powered-by');
+  // Next.js (en 127.0.0.1) reenvía la IP real del usuario en X-Forwarded-For.
   app.set('trust proxy', 'loopback');
   app.use(helmet());
   app.use(requestId());
 
+  let contextFor = deps.contextFor;
+  if (deps.rateLimit) {
+    app.use(createGeneralLimiter({ perMinute: deps.rateLimit.generalPerMinute, store: deps.rateLimit.store }));
+    const guard = createUpstreamGuard({ perMinute: deps.rateLimit.upstreamPerMinute });
+    contextFor ??= (req) => ({ beforeUpstream: () => guard.check(req.ip ?? 'unknown') });
+  }
+
   app.get('/api/v1/health', async (_req, res) => {
     sendData(res, { data: await deps.health(), source: 'fresh', fetchedAt: Date.now() });
   });
-  if (deps.services) app.use('/api/v1', createV1Router(deps.services, deps.contextFor));
+  if (deps.services) app.use('/api/v1', createV1Router(deps.services, contextFor));
 
   app.use(notFoundHandler());
   app.use(errorHandler(deps.logger));
