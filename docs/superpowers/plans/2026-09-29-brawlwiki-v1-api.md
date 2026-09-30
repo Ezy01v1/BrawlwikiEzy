@@ -21,7 +21,7 @@
 - Todos los mensajes para el usuario van en **español**.
 - La API escucha en `127.0.0.1:4000` por defecto. `SUPERCELL_API_KEY` nunca aparece en respuestas ni en logs.
 - Tiempos de caché en segundos (fresh/stale): jugador y battle log 120/604800, club 600/604800, rankings 900/86400, eventos 600/86400, brawlers 86400/2592000. Caché negativa de 404: 60.
-- Cliente de Supercell: timeout de 5000ms, 1 reintento (300ms + jitter de hasta 200ms) solo ante red, timeout o 5xx que no sea mantenimiento. Máximo 8 requests simultáneos. Cooldown por 429 igual a `Retry-After`, o 10s por defecto.
+- Cliente de Supercell: timeout de 2500ms, 1 reintento (300ms + jitter de hasta 200ms) solo ante red, timeout o 5xx que no sea mantenimiento. Máximo 8 requests simultáneos. Cooldown por 429 igual a `Retry-After`, o 10s por defecto.
 - Rate limit: 60 req/min por IP (general) y 20 llamadas upstream/min por IP. `trust proxy` = `loopback`.
 - CDN de imágenes: `https://cdn.brawlify.com/brawlers/borderless/{id}.png`, `/profile-icons/regular/{id}.png`, `/maps/regular/{id}.png`, `/club-badges/regular/{id}.png`.
 - Los comandos se ejecutan desde la raíz del repo en **Git Bash** (Windows).
