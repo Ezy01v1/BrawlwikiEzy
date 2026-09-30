@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Cache } from '../src/cache/cache';
 import { createMemoryCache } from '../src/cache/memory';
 import { createRedisCache } from '../src/cache/redis';
@@ -37,6 +37,20 @@ contract('memory', () => createMemoryCache());
 
 describe.skipIf(!process.env.REDIS_URL)('redis', () => {
   contract('redis', () => createRedisCache(process.env.REDIS_URL!));
+});
+
+describe('RedisCache error handling', () => {
+  it('registra listener de error para evitar crash en unhandled errors', async () => {
+    const onError = vi.fn();
+    const cache = createRedisCache('redis://127.0.0.1:1', onError);
+
+    const testError = new Error('boom');
+    cache.client.emit('error', testError);
+
+    expect(onError).toHaveBeenCalledWith(testError);
+
+    await cache.client.disconnect();
+  });
 });
 
 describe('MemoryCache específico', () => {

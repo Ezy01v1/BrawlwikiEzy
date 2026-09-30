@@ -3,8 +3,12 @@ import type { Cache } from './cache';
 
 export type RedisCache = Cache & { client: Redis; quit(): Promise<void> };
 
-export function createRedisCache(url: string): RedisCache {
-  const client = new Redis(url, { maxRetriesPerRequest: 1 });
+export function createRedisCache(
+  url: string,
+  onError: (err: Error) => void = () => {},
+): RedisCache {
+  const client = new Redis(url, { maxRetriesPerRequest: 1, lazyConnect: true });
+  client.on('error', onError);
 
   return {
     kind: 'redis',
