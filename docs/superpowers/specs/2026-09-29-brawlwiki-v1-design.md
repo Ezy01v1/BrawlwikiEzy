@@ -63,7 +63,7 @@ BrawlWikiEzy/
 ```
 Navegador ──► Next.js (servidor) ──► Express /api/v1 ──► Caché (memoria | Redis)
                                                    └──► Supercell API (si no hay dato fresco)
-                                                   └──► Brawlify API (metadatos + URLs de imágenes)
+                                                   └──► brawler-meta.json local (rareza, clase)
 Navegador ──► CDN Brawlify (imágenes, vía next/image)
 ```
 
@@ -90,8 +90,10 @@ apps/api/src/
 │   ├── client.ts         HTTP hacia Supercell: auth, timeout, retry, mapeo de errores
 │   ├── fixtures.ts       cliente alternativo que lee JSON (SUPERCELL_MOCK=1)
 │   └── fixtures/*.json
-├── brawlify/
-│   └── client.ts         metadatos (rareza, clase) y URLs de imágenes por ID
+├── assets/
+│   ├── urls.ts           URLs del CDN por ID
+│   ├── brawler-meta.ts   rareza y clase desde brawler-meta.json
+│   └── brawler-meta.json
 ├── cache/
 │   ├── cache.ts          interfaz Cache { get, set, del }
 │   ├── memory.ts         MemoryCache (LRU con límite de entradas)
@@ -139,7 +141,6 @@ Cada entrada guarda `{ data, fetchedAt }` con dos tiempos: `freshTtl` (se sirve 
 | Rankings | `rank:{tipo}:{region}[:{brawlerId}]` | 15 min | 1 día |
 | Rotación de eventos | `events:rotation` | 10 min | 1 día |
 | Catálogo de brawlers (Supercell) | `brawlers` | 24 h | 30 días |
-| Metadatos de Brawlify | `brawlify:{recurso}` | 24 h | 30 días |
 | No encontrado (caché negativa) | `404:{clave}` | 1 min | 1 min |
 
 **Algoritmo:**
@@ -162,11 +163,19 @@ Cada entrada guarda `{ data, fetchedAt }` con dos tiempos: `freshTtl` (se sirve 
 
 ### Brawlify (metadatos e imágenes)
 
-La API oficial no devuelve imágenes, rareza ni clase. El módulo `brawlify/client.ts` obtiene de la API pública de Brawlify los catálogos de brawlers (con rareza, color de rareza y clase), íconos de perfil, mapas y modos de juego. Cada uno se cachea 24h (fresco) y 30 días (stale).
+La API oficial no devuelve imágenes, rareza ni clase.
 
-- Los servicios **enriquecen los DTOs** con `imageUrl`, `rarity` y `class` buscando por ID.
-- **Si Brawlify falla y no hay caché**, los campos quedan en `null`: el frontend muestra el fallback visual y el borde neutro. **La respuesta principal nunca falla por culpa de Brawlify.**
-- Las URLs exactas de los endpoints de Brawlify se verifican al implementar. El módulo expone una interfaz propia (`getBrawlerMeta(id)`, `getIconUrl(id)`, `getMapMeta(id)`, `getModeMeta(name)`) para que un cambio en Brawlify no toque nada fuera del módulo.
+> **Revisión del 2026-09-29, al planificar:** la API de Brawlify (`api.brawlify.com`) responde con una página anti-bots ("Security Check") y no se puede consumir desde el servidor. Su **CDN sí funciona** y usa URLs predecibles por ID. Por eso el diseño queda así:
+
+- **Imágenes: URLs construidas por patrón**, sin llamadas de red (verificadas el 2026-09-29):
+  - brawler: `https://cdn.brawlify.com/brawlers/borderless/{id}.png`
+  - ícono de perfil: `https://cdn.brawlify.com/profile-icons/regular/{id}.png`
+  - mapa: `https://cdn.brawlify.com/maps/regular/{id}.png`
+  - badge de club: `https://cdn.brawlify.com/club-badges/regular/{id}.png`
+  - Si un ID no existe, el CDN devuelve 404 y `GameImage` muestra el fallback.
+- **Rareza y clase:** vienen de un archivo local `apps/api/src/assets/brawler-meta.json` (`{ [id]: { rarity: { name, color }, class } }`), que se genera con el script `npm run meta:import -w apps/api -- <archivo.json>`. Ese script convierte el JSON de brawlers de Brawlify que se descarga una vez desde el navegador. Si un brawler no está en el archivo (por ejemplo, uno nuevo), `rarity` y `class` quedan en `null` y se usa el borde neutro.
+- **Íconos de modo de juego:** fuera de la v1. `EventCard` muestra la imagen del mapa y el nombre del modo traducido; `mode.imageUrl` siempre es `null`.
+- El módulo `assets/` expone `brawlerImageUrl(id)`, `profileIconUrl(id)`, `mapImageUrl(id)`, `clubBadgeUrl(id)` y `getBrawlerMeta(id)`. La respuesta principal nunca depende de un tercero en tiempo de ejecución.
 
 ### Rate limiting hacia nuestros usuarios
 
@@ -479,7 +488,7 @@ Mobile-first, con los breakpoints de Tailwind: `sm` 640, `md` 768, `lg` 1024.
 - **Dedupe:** 2 requests simultáneos generan exactamente 1 llamada upstream.
 - Rate limit por IP con `X-Forwarded-For`.
 - `INVALID_TAG` no llama upstream.
-- Brawlify caído → campos en `null` sin error.
+- brawler sin metadatos → `rarity` y `class` en `null`; URLs del CDN correctas.
 - La key no aparece en respuestas ni en logs capturados.
 
 Los tests del backend usan `MemoryCache`. `RedisCache` comparte una suite de contrato que se ejecuta solo si existe `REDIS_URL`.
@@ -528,7 +537,7 @@ Los tests del backend usan `MemoryCache`. `RedisCache` comparte una suite de con
 ## 10. Riesgos y limitaciones conocidas
 
 - **Key atada a IP.** En desarrollo, un cambio de IP rompe la key. Mitigación: modo fixtures y el mensaje claro del 403.
-- **Dependencia de Brawlify** (tercero no oficial) para imágenes y rareza. Mitigación: degradación a `null` + fallback visual, e interfaz aislada en `brawlify/`.
+- **Dependencia del CDN de Brawlify** (tercero no oficial) para imágenes. Mitigación: fallback visual en `GameImage` y URLs aisladas en `assets/urls.ts`. La rareza es local y hay que actualizarla con `meta:import` cuando salgan brawlers nuevos.
 - **Battle log limitado.** Supercell solo da las últimas ~25 partidas, así que las stats de "últimas partidas" son solo eso; la interfaz lo dice explícitamente.
 - **La cuota de Supercell no está documentada con precisión.** Mitigación: caché, dedupe, límite de concurrencia, rate limit por IP y cooldown ante 429.
 - **Fan Content Policy.** No se usa el nombre "Brawl Stars" como marca del sitio ni se imita la interfaz oficial de Supercell. El disclaimer va en todas las páginas y el sitio no se monetiza sin revisar la política.
