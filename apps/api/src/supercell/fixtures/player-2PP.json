@@ -1,0 +1,25 @@
+{
+  "tag": "#2PP",
+  "name": "EzyPlayer",
+  "nameColor": "0xffffd700",
+  "icon": { "id": 28000000 },
+  "trophies": 42310,
+  "highestTrophies": 43002,
+  "expLevel": 187,
+  "expPoints": 190000,
+  "3vs3Victories": 3412,
+  "soloVictories": 612,
+  "duoVictories": 300,
+  "club": { "tag": "#2YPLQ", "name": "Los Cracks" },
+  "brawlers": [
+    { "id": 16000000, "name": "SHELLY", "power": 11, "rank": 30, "trophies": 900, "highestTrophies": 950,
+      "gadgets": [{ "id": 23000255, "name": "FAST FORWARD" }], "starPowers": [{ "id": 23000076, "name": "SHELL SHOCK" }],
+      "gears": [{ "id": 62000000, "name": "SPEED", "level": 3 }] },
+    { "id": 16000001, "name": "COLT", "power": 9, "rank": 25, "trophies": 750, "highestTrophies": 800,
+      "gadgets": [], "starPowers": [], "gears": [] },
+    { "id": 16000002, "name": "BULL", "power": 11, "rank": 35, "trophies": 1000, "highestTrophies": 1000,
+      "gadgets": [{ "id": 23000272, "name": "T-BONE INJECTOR" }], "starPowers": [], "gears": [] },
+    { "id": 16000003, "name": "BROCK", "power": 7, "rank": 20, "trophies": 500, "highestTrophies": 620,
+      "gadgets": [], "starPowers": [], "gears": [] }
+  ]
+}

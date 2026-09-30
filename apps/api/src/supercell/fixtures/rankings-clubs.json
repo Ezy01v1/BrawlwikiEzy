@@ -1,0 +1,7 @@
+{
+  "items": [
+    { "tag": "#2YPLQ", "name": "Los Cracks", "badgeId": 8000000, "trophies": 1020000, "rank": 1, "memberCount": 30 },
+    { "tag": "#8CGRV", "name": "Titanes", "badgeId": 8000010, "trophies": 940000, "rank": 2, "memberCount": 27 }
+  ],
+  "paging": { "cursors": {} }
+}

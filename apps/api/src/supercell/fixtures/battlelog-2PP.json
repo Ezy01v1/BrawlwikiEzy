@@ -1,0 +1,64 @@
+{
+  "items": [
+    {
+      "battleTime": "20260929T115500.000Z",
+      "event": { "id": 15000026, "mode": "gemGrab", "map": "Hard Rock Mine" },
+      "battle": {
+        "mode": "gemGrab", "type": "ranked", "result": "victory", "duration": 121, "trophyChange": 8,
+        "starPlayer": { "tag": "#2PP", "name": "EzyPlayer", "brawler": { "id": 16000000, "name": "SHELLY", "power": 11, "trophies": 900 } },
+        "teams": [
+          [
+            { "tag": "#2PP", "name": "EzyPlayer", "brawler": { "id": 16000000, "name": "SHELLY", "power": 11, "trophies": 900 } },
+            { "tag": "#8QU", "name": "SinClub", "brawler": { "id": 16000001, "name": "COLT", "power": 3, "trophies": 120 } },
+            { "tag": "#Y2YY", "name": "Aliado", "brawler": { "id": 16000002, "name": "BULL", "power": 9, "trophies": 700 } }
+          ],
+          [
+            { "tag": "#PPP", "name": "Rival1", "brawler": { "id": 16000003, "name": "BROCK", "power": 10, "trophies": 880 } },
+            { "tag": "#QQQ", "name": "Rival2", "brawler": { "id": 16000000, "name": "SHELLY", "power": 11, "trophies": 910 } },
+            { "tag": "#LLQ", "name": "Rival3", "brawler": { "id": 16000001, "name": "COLT", "power": 11, "trophies": 870 } }
+          ]
+        ]
+      }
+    },
+    {
+      "battleTime": "20260929T114300.000Z",
+      "event": { "id": 15000048, "mode": "brawlBall", "map": "Super Beach" },
+      "battle": {
+        "mode": "brawlBall", "type": "ranked", "result": "defeat", "duration": 150, "trophyChange": -6,
+        "starPlayer": null,
+        "teams": [
+          [ { "tag": "#2PP", "name": "EzyPlayer", "brawler": { "id": 16000002, "name": "BULL", "power": 11, "trophies": 1000 } } ],
+          [ { "tag": "#PPP", "name": "Rival1", "brawler": { "id": 16000003, "name": "BROCK", "power": 10, "trophies": 880 } } ]
+        ]
+      }
+    },
+    {
+      "battleTime": "20260929T113500.000Z",
+      "event": { "id": 15000011, "mode": "soloShowdown", "map": "Skull Creek" },
+      "battle": {
+        "mode": "soloShowdown", "type": "ranked", "rank": 2, "trophyChange": 9,
+        "players": [
+          { "tag": "#2PP", "name": "EzyPlayer", "brawler": { "id": 16000000, "name": "SHELLY", "power": 11, "trophies": 900 } },
+          { "tag": "#QQQ", "name": "Rival2", "brawler": { "id": 16000001, "name": "COLT", "power": 11, "trophies": 910 } }
+        ]
+      }
+    },
+    {
+      "battleTime": "20260929T112000.000Z",
+      "event": { "id": 0 },
+      "battle": {
+        "mode": "duels", "type": "friendly", "result": "victory", "duration": 95,
+        "players": [
+          { "tag": "#2PP", "name": "EzyPlayer", "brawlers": [
+            { "id": 16000000, "name": "SHELLY", "power": 11, "trophies": 900 },
+            { "id": 16000002, "name": "BULL", "power": 11, "trophies": 1000 }
+          ] },
+          { "tag": "#PPP", "name": "Rival1", "brawlers": [
+            { "id": 16000003, "name": "BROCK", "power": 10, "trophies": 880 }
+          ] }
+        ]
+      }
+    }
+  ],
+  "paging": { "cursors": {} }
+}

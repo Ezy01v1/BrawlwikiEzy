@@ -1,0 +1,8 @@
+{
+  "items": [
+    { "tag": "#YYYY", "name": "xXProXx", "nameColor": "0xffff8afb", "icon": { "id": 28000010 }, "trophies": 98410, "rank": 1, "club": { "name": "Tribe" } },
+    { "tag": "#QQQ", "name": "Rival2", "icon": { "id": 28000003 }, "trophies": 97022, "rank": 2, "club": { "name": "Titanes" } },
+    { "tag": "#LLLQ", "name": "SoloPro", "icon": { "id": 28000011 }, "trophies": 96870, "rank": 3 }
+  ],
+  "paging": { "cursors": {} }
+}
