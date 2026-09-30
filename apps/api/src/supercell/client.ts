@@ -28,7 +28,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export function createSupercellClient(opts: SupercellClientOptions): SupercellApi {
   const fetchImpl = opts.fetchImpl ?? fetch;
-  const timeoutMs = opts.timeoutMs ?? 5000;
+  const timeoutMs = opts.timeoutMs ?? 2500;
   const retryDelayMs = opts.retryDelayMs ?? 300;
   const limit = createLimiter(opts.maxConcurrent ?? 8);
 

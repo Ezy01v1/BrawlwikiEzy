@@ -7,7 +7,7 @@ export function createRedisCache(
   url: string,
   onError: (err: Error) => void = () => {},
 ): RedisCache {
-  const client = new Redis(url, { maxRetriesPerRequest: 1, lazyConnect: true });
+  const client = new Redis(url, { maxRetriesPerRequest: 1, lazyConnect: true, commandTimeout: 300 });
   client.on('error', onError);
 
   return {

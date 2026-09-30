@@ -1,6 +1,6 @@
 import type { Health } from '@brawlwiki/shared';
 import express, { type Express, type Request } from 'express';
-import type { Store } from 'express-rate-limit';
+import { ipKeyGenerator, type Store } from 'express-rate-limit';
 import helmet from 'helmet';
 import { pinoHttp } from 'pino-http';
 import { errorHandler, notFoundHandler } from './http/error-handler';
@@ -33,7 +33,7 @@ export function createApp(deps: AppDeps): Express {
   if (deps.rateLimit) {
     app.use(createGeneralLimiter({ perMinute: deps.rateLimit.generalPerMinute, store: deps.rateLimit.store }));
     const guard = createUpstreamGuard({ perMinute: deps.rateLimit.upstreamPerMinute });
-    contextFor ??= (req) => ({ beforeUpstream: () => guard.check(req.ip ?? 'unknown') });
+    contextFor ??= (req) => ({ beforeUpstream: () => guard.check(ipKeyGenerator(req.ip ?? 'unknown')) });
   }
 
   app.get('/api/v1/health', async (_req, res) => {

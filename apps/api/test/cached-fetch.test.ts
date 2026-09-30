@@ -120,6 +120,52 @@ describe('cachedFetch', () => {
     });
   });
 
+  it('un joiner no hereda el RATE_LIMITED del líder: reintenta con su propio beforeUpstream', async () => {
+    let release!: (v: string) => void;
+    const fetcher = vi.fn(() => new Promise<string>((r) => (release = r)));
+    let leaderCalls = 0;
+    const leaderBeforeUpstream = () => {
+      leaderCalls++;
+      throw new AppError('RATE_LIMITED', undefined, { retryAfter: 5 });
+    };
+    const joinerBeforeUpstream = vi.fn(() => {});
+
+    const leader = cf.cachedFetch('k', POLICY, fetcher, { beforeUpstream: leaderBeforeUpstream });
+    const joiner = cf.cachedFetch('k', POLICY, fetcher, { beforeUpstream: joinerBeforeUpstream });
+
+    await expect(leader).rejects.toMatchObject({ code: 'RATE_LIMITED' });
+    await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1));
+    release('joined-fresh');
+    await expect(joiner).resolves.toMatchObject({ data: 'joined-fresh', source: 'fresh' });
+    expect(joinerBeforeUpstream).toHaveBeenCalledTimes(1);
+    expect(leaderCalls).toBe(1);
+  });
+
+  it('error no-AppError del fetcher: con stale la sirve, sin stale la propaga', async () => {
+    const error = vi.fn();
+    const c = createCachedFetch({ cache, now: () => t, logger: { warn: vi.fn(), error } });
+
+    await c.cachedFetch('k', POLICY, async () => 'A');
+    const fetchedAt = t;
+    t += 61_000;
+    await expect(
+      c.cachedFetch('k', POLICY, () => {
+        throw new TypeError('forma inesperada');
+      }),
+    ).resolves.toMatchObject({
+      data: 'A',
+      source: 'stale',
+      fetchedAt,
+    });
+    expect(error).toHaveBeenCalled();
+
+    await expect(
+      c.cachedFetch('sinStale', POLICY, () => {
+        throw new TypeError('forma inesperada');
+      }),
+    ).rejects.toThrow(TypeError);
+  });
+
   it('caché rota (get/set lanzan) → se trata como vacía y responde fresh', async () => {
     const broken: Cache = {
       kind: 'redis',

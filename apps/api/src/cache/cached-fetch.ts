@@ -27,7 +27,7 @@ function isEntry(x: unknown): x is CacheEntry<unknown> {
   return typeof x === 'object' && x !== null && 'data' in x && typeof (x as { fetchedAt?: unknown }).fetchedAt === 'number';
 }
 
-export function createCachedFetch(deps: { cache: Cache; now?: () => number; logger?: Pick<Logger, 'warn'> }) {
+export function createCachedFetch(deps: { cache: Cache; now?: () => number; logger?: Pick<Logger, 'warn' | 'error'> }) {
   const { cache, logger } = deps;
   const now = deps.now ?? Date.now;
   const inflight = new Map<string, Promise<DataResult<unknown>>>();
@@ -78,7 +78,12 @@ export function createCachedFetch(deps: { cache: Cache; now?: () => number; logg
       await safeSet(key, { data, fetchedAt } satisfies CacheEntry<T>, policy.staleTtl);
       return { data, source: 'fresh', fetchedAt };
     } catch (err) {
-      if (!isAppError(err)) throw err;
+      if (!isAppError(err)) {
+        logger?.error({ err, key }, 'error inesperado al consultar Supercell');
+        const s = stale();
+        if (s) return s;
+        throw err;
+      }
       if (err.code === 'NOT_FOUND') {
         await safeSet(`404:${key}`, 1, NEGATIVE_TTL_SECONDS);
         throw err;
@@ -105,7 +110,18 @@ export function createCachedFetch(deps: { cache: Cache; now?: () => number; logg
     }
 
     const pending = inflight.get(key);
-    if (pending) return pending as never;
+    if (pending) {
+      try {
+        return (await pending) as never;
+      } catch (err) {
+        // Un joiner no debe heredar el RATE_LIMITED del líder: reintenta como su propio líder,
+        // aplicando su propio beforeUpstream.
+        if (isAppError(err) && err.code === 'RATE_LIMITED') {
+          return resolveUpstream(key, policy, fetcher, entry, options);
+        }
+        throw err;
+      }
+    }
 
     const p = resolveUpstream(key, policy, fetcher, entry, options).finally(() => inflight.delete(key));
     inflight.set(key, p);

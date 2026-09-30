@@ -1,6 +1,7 @@
+import type { Store } from 'express-rate-limit';
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
-import { createUpstreamGuard } from '../src/http/rate-limit';
+import { createGeneralLimiter, createUpstreamGuard } from '../src/http/rate-limit';
 import { createTestApp } from './helpers';
 
 describe('createUpstreamGuard', () => {
@@ -35,6 +36,33 @@ describe('limitador general', () => {
 
     expect((await request(app).get('/api/v1/events/rotation').set('X-Forwarded-For', IP_B)).status).toBe(200);
     expect((await request(app).get('/api/v1/health').set('X-Forwarded-For', IP_A)).status).toBe(200);
+  });
+});
+
+describe('passOnStoreError', () => {
+  const brokenStore: Store = {
+    increment: async () => {
+      throw new Error('ECONNREFUSED');
+    },
+    decrement: () => {},
+    resetKey: () => {},
+  };
+
+  it('si el store falla (ej. Redis caído), la petición pasa sin límite (200)', async () => {
+    const { app } = createTestApp({
+      app: { rateLimit: { generalPerMinute: 3, upstreamPerMinute: 100, store: brokenStore } },
+    });
+    const res = await request(app).get('/api/v1/events/rotation').set('X-Forwarded-For', IP_A);
+    expect(res.status).toBe(200);
+  });
+
+  it('createGeneralLimiter con store roto no bloquea la petición', async () => {
+    const express = (await import('express')).default;
+    const app = express();
+    app.use(createGeneralLimiter({ perMinute: 1, store: brokenStore }));
+    app.get('/x', (_req, res) => res.status(200).end());
+    const res = await request(app).get('/x');
+    expect(res.status).toBe(200);
   });
 });
 

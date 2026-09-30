@@ -24,6 +24,13 @@ describe('/api/v1 jugadores y clubes', () => {
     expect(res.body.data.tag).toBe('2PP');
   });
 
+  it('percent-encoding malformado → 400 INVALID_PARAM (no 500)', async () => {
+    const { app } = createTestApp();
+    const res = await request(app).get('/api/v1/players/%ZZ');
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('INVALID_PARAM');
+  });
+
   it('tag inválido → 400 INVALID_TAG sin llamar a Supercell', async () => {
     const supercell = createFixtureClient();
     const spy = vi.spyOn(supercell, 'getPlayer');
@@ -109,6 +116,29 @@ describe('/api/v1 rankings, brawlers y eventos', () => {
     const res = await request(app).get('/api/v1/events/rotation');
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveLength(2);
+  });
+
+  it('cooldown por 429: bloquea otras consultas nuevas sin llamar a Supercell', async () => {
+    const supercell = createFixtureClient();
+    const spy = vi.spyOn(supercell, 'getPlayer');
+    const { app } = createTestApp({ supercell });
+
+    await request(app).get('/api/v1/players/2PP');
+    spy.mockClear();
+
+    const blocked = await request(app).get('/api/v1/players/RRRR');
+    expect(blocked.status).toBe(503);
+    expect(blocked.body.error.code).toBe('UPSTREAM_RATE_LIMITED');
+    expect(Number(blocked.headers['retry-after'])).toBeGreaterThan(0);
+    spy.mockClear();
+
+    const alsoBlocked = await request(app).get('/api/v1/players/8QU');
+    expect(alsoBlocked.status).toBe(503);
+    expect(alsoBlocked.body.error.code).toBe('UPSTREAM_RATE_LIMITED');
+    expect(spy).not.toHaveBeenCalled();
+
+    const health = await request(app).get('/api/v1/health');
+    expect(health.body.data.supercell).toBe('mock');
   });
 
   it('health refleja caché y modo de Supercell', async () => {

@@ -10,6 +10,7 @@ export function createGeneralLimiter(opts: { perMinute: number; store?: Store })
     limit: opts.perMinute,
     standardHeaders: 'draft-8',
     legacyHeaders: false,
+    passOnStoreError: true,
     ...(opts.store ? { store: opts.store } : {}),
     skip: (req) => req.path === '/api/v1/health',
     handler: (req, _res, next) => {
