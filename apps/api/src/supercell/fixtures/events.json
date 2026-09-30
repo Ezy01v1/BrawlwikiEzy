@@ -1,0 +1,6 @@
+[
+  { "startTime": "20260929T080000.000Z", "endTime": "20260930T080000.000Z", "slotId": 1,
+    "event": { "id": 15000026, "mode": "gemGrab", "map": "Hard Rock Mine" } },
+  { "startTime": "20260929T100000.000Z", "endTime": "20260929T180000.000Z", "slotId": 2,
+    "event": { "id": 15000048, "mode": "brawlBall", "map": "Super Beach" } }
+]

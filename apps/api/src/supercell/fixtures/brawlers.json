@@ -1,0 +1,9 @@
+{
+  "items": [
+    { "id": 16000000, "name": "SHELLY", "starPowers": [{ "id": 23000076, "name": "SHELL SHOCK" }], "gadgets": [{ "id": 23000255, "name": "FAST FORWARD" }] },
+    { "id": 16000001, "name": "COLT", "starPowers": [], "gadgets": [] },
+    { "id": 16000002, "name": "BULL", "starPowers": [], "gadgets": [{ "id": 23000272, "name": "T-BONE INJECTOR" }] },
+    { "id": 16000003, "name": "BROCK", "starPowers": [], "gadgets": [] }
+  ],
+  "paging": { "cursors": {} }
+}

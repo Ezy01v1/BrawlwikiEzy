@@ -1,0 +1,13 @@
+{
+  "tag": "#8CGRV",
+  "name": "Titanes",
+  "description": "",
+  "type": "open",
+  "badgeId": 8000010,
+  "requiredTrophies": 30000,
+  "trophies": 940000,
+  "members": [
+    { "tag": "#QQQ", "name": "Rival2", "role": "president", "trophies": 45000, "icon": { "id": 28000003 } },
+    { "tag": "#PPP", "name": "Rival1", "role": "member", "trophies": 38000, "icon": { "id": 28000004 } }
+  ]
+}

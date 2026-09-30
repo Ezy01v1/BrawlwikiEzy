@@ -1,0 +1,15 @@
+{
+  "tag": "#8QU",
+  "name": "SinClub",
+  "icon": { "id": 28000001 },
+  "trophies": 1200,
+  "highestTrophies": 1300,
+  "expLevel": 20,
+  "3vs3Victories": 100,
+  "soloVictories": 10,
+  "duoVictories": 5,
+  "club": {},
+  "brawlers": [
+    { "id": 16000000, "name": "SHELLY", "power": 3, "rank": 8, "trophies": 120, "highestTrophies": 150 }
+  ]
+}

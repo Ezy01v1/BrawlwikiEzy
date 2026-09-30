@@ -108,7 +108,7 @@ apps/api/src/
 ### Cliente de Supercell
 
 - Base: `https://api.brawlstars.com/v1`. Header `Authorization: Bearer ${SUPERCELL_API_KEY}`.
-- Timeout de 5s por request.
+- Timeout de 2.5s por request (el peor caso con reintento, ~5.5s, cabe en el timeout de 6s de Next).
 - **Reintento:** 1 vez con backoff (300ms + jitter), solo ante 5xx de red o timeout. Nunca ante 4xx ni 429.
 - **Concurrencia máxima:** 8 requests simultáneos hacia Supercell (cola simple). Evita ráfagas.
 - **Mapeo de errores:**

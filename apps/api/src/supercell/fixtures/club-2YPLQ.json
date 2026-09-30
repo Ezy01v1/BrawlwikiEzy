@@ -1,0 +1,14 @@
+{
+  "tag": "#2YPLQ",
+  "name": "Los Cracks",
+  "description": "Club de prueba. ¡Activos diario!",
+  "type": "inviteOnly",
+  "badgeId": 8000000,
+  "requiredTrophies": 25000,
+  "trophies": 1020000,
+  "members": [
+    { "tag": "#2PP", "name": "EzyPlayer", "nameColor": "0xffffd700", "role": "president", "trophies": 42310, "icon": { "id": 28000000 } },
+    { "tag": "#Y2YY", "name": "Mika", "role": "vicePresident", "trophies": 40100, "icon": { "id": 28000002 } },
+    { "tag": "#8QU", "name": "SinClub", "role": "member", "trophies": 1200, "icon": { "id": 28000001 } }
+  ]
+}

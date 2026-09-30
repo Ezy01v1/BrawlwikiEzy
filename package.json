@@ -1,0 +1,22 @@
+{
+  "name": "brawlwiki",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "npm run dev -w @brawlwiki/api",
+    "test": "npm test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.0",
+    "typescript": "~5.9.3",
+    "vitest": "^5.0.2"
+  }
+}
