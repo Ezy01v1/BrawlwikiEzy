@@ -31,7 +31,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         >
           Saltar al contenido
         </a>
-        <Header />
+        <Header theme={theme} />
         <main id="contenido" className="mx-auto w-full max-w-5xl px-4 md:px-6">
           {children}
         </main>

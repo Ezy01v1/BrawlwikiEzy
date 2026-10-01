@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import { TagSearch } from '@/components/search/TagSearch';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import type { Theme } from '@/lib/theme';
 import { NavLinks } from './NavLinks';
 
-export function Header() {
+export function Header({ theme }: { theme?: Theme } = {}) {
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-bg/90 backdrop-blur">
       <div className="mx-auto flex max-w-5xl items-center gap-2 px-4 py-2 md:gap-4 md:px-6">
@@ -14,7 +15,7 @@ export function Header() {
         <NavLinks variant="top" />
         <div className="ml-auto flex min-w-0 flex-1 items-center justify-end gap-1 md:max-w-sm">
           <TagSearch variant="compact" />
-          <ThemeToggle />
+          <ThemeToggle initial={theme} />
         </div>
       </div>
     </header>

@@ -19,6 +19,12 @@ describe('theme', () => {
     expect(themeCookie('light')).toBe('theme=light; path=/; max-age=31536000; samesite=lax');
   });
 
+  it('ThemeToggle con initial="light" muestra el botón correcto antes de hidratar', () => {
+    document.documentElement.dataset.theme = 'light';
+    render(<ThemeToggle initial="light" />);
+    expect(screen.getByRole('button', { name: 'Cambiar a modo oscuro' })).toBeInTheDocument();
+  });
+
   it('ThemeToggle alterna data-theme y guarda la cookie', async () => {
     render(<ThemeToggle />);
     const button = screen.getByRole('button', { name: 'Cambiar a modo claro' });

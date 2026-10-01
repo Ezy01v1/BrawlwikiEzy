@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { parseTheme, type Theme, themeCookie } from '@/lib/theme';
 
-export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>('dark');
+export function ThemeToggle({ initial = 'dark' }: { initial?: Theme } = {}) {
+  const [theme, setTheme] = useState<Theme>(initial);
 
   useEffect(() => {
     setTheme(parseTheme(document.documentElement.dataset.theme));
