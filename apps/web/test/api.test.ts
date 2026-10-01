@@ -40,12 +40,15 @@ describe('apiGet', () => {
     });
   });
 
-  it('error sin cuerpo válido → INTERNAL', async () => {
+  it('error sin cuerpo válido → INTERNAL y console.error', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const fetchImpl = vi.fn(async () => new Response('<html>', { status: 502 }));
     await expect(apiGet('/x', z.number(), { baseUrl: BASE, fetchImpl })).rejects.toMatchObject({
       code: 'INTERNAL',
       status: 502,
     });
+    expect(spy).toHaveBeenCalled();
+    spy.mockRestore();
   });
 
   it('Express caído (fetch rechaza) → NETWORK', async () => {

@@ -57,7 +57,10 @@ export async function apiGet<T>(path: string, schema: z.ZodType<T>, opts: ApiGet
 
   if (!res.ok) {
     const parsed = ApiErrorBodySchema.safeParse(body);
-    if (!parsed.success) throw new ApiError('INTERNAL', UNEXPECTED, { status: res.status });
+    if (!parsed.success) {
+      console.error('[api] error con cuerpo inesperado', path, res.status);
+      throw new ApiError('INTERNAL', UNEXPECTED, { status: res.status });
+    }
     const e = parsed.data.error;
     throw new ApiError(e.code, e.message, { status: res.status, retryAfter: e.retryAfter, requestId: e.requestId });
   }
