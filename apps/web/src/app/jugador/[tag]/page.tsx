@@ -16,7 +16,7 @@ import { attempt } from '@/lib/attempt';
 import { parseOrder } from '@/lib/brawlers';
 import { formatNumber } from '@/lib/format';
 import { playerTabs, resolveTag } from '@/lib/player-route';
-import { getPlayer } from '@/lib/queries';
+import { getBattleLog, getPlayer } from '@/lib/queries';
 import { first, parseTab } from '@/lib/search-params';
 
 export async function generateMetadata({ params }: PageProps<'/jugador/[tag]'>): Promise<Metadata> {
@@ -40,6 +40,9 @@ export default async function PlayerPage({ params, searchParams }: PageProps<'/j
 
   const tab = parseTab(first(sp.tab));
   if (tag !== raw) redirect(playerTabs(tag, tab).find((t) => t.active)!.href);
+
+  // Arranca el battle log en paralelo con el jugador para que no espere a que éste resuelva (M2).
+  if (tab === 'partidas') void getBattleLog(tag).catch(() => {});
 
   const r = await attempt(getPlayer(tag));
   if (!r.ok) {
