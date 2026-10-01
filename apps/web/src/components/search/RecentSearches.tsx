@@ -2,20 +2,26 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { getRecent, type SavedEntry } from '@/lib/local-store';
+import { getFavorites, getRecent, type SavedEntry } from '@/lib/local-store';
 
-export function RecentSearches() {
+const SOURCES = {
+  recent: { get: getRecent, title: 'RECIENTES', id: 'recientes' },
+  favorites: { get: getFavorites, title: 'FAVORITOS', id: 'favoritos' },
+} as const;
+
+export function SavedList({ source }: { source: keyof typeof SOURCES }) {
   const [items, setItems] = useState<SavedEntry[]>([]);
+  const { get, title, id } = SOURCES[source];
 
   useEffect(() => {
-    setItems(getRecent());
-  }, []);
+    setItems(get());
+  }, [get]);
 
   if (items.length === 0) return null;
   return (
-    <section aria-labelledby="recientes" className="my-6">
-      <h2 id="recientes" className="mb-2 font-display text-sm tracking-wide text-muted">
-        RECIENTES
+    <section aria-labelledby={id} className="my-6">
+      <h2 id={id} className="mb-2 font-display text-sm tracking-wide text-muted">
+        {title}
       </h2>
       <ul className="divide-y divide-border rounded-card border border-border bg-surface">
         {items.map((e) => (
@@ -32,4 +38,9 @@ export function RecentSearches() {
       </ul>
     </section>
   );
+}
+
+/** Alias para no romper imports existentes. */
+export function RecentSearches() {
+  return <SavedList source="recent" />;
 }

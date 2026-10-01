@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { FavoriteButton } from '@/components/search/FavoriteButton';
-import { RecentSearches } from '@/components/search/RecentSearches';
+import { RecentSearches, SavedList } from '@/components/search/RecentSearches';
 import { TagSearch } from '@/components/search/TagSearch';
 import { addRecent, getFavorites, getRecent, isFavorite, MAX_RECENT, toggleFavorite } from '@/lib/local-store';
 
@@ -107,5 +107,15 @@ describe('FavoriteButton y RecentSearches', () => {
     render(<RecentSearches />);
     await waitFor(() => expect(screen.getByRole('link', { name: /EzyPlayer/ })).toHaveAttribute('href', '/jugador/2PP'));
     expect(screen.getByRole('link', { name: /#2YPLQ/ })).toHaveAttribute('href', '/club/2YPLQ');
+  });
+
+  it('SavedList de favoritos lista el link al perfil y no muestra nada si está vacío', async () => {
+    const { container, unmount } = render(<SavedList source="favorites" />);
+    expect(container).toBeEmptyDOMElement();
+    unmount();
+    toggleFavorite({ type: 'player', tag: '2PP', name: 'EzyPlayer' });
+    render(<SavedList source="favorites" />);
+    await waitFor(() => expect(screen.getByText('FAVORITOS')).toBeInTheDocument());
+    expect(screen.getByRole('link', { name: /EzyPlayer/ })).toHaveAttribute('href', '/jugador/2PP');
   });
 });

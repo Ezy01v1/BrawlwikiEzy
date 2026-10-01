@@ -58,5 +58,6 @@ test('favoritos sobreviven a la recarga y la visita queda en recientes', async (
   await expect(page.getByRole('button', { name: 'Quitar de favoritos' })).toHaveAttribute('aria-pressed', 'true');
 
   await page.goto('/');
-  await expect(page.getByRole('main').getByRole('link', { name: /EzyPlayer/ })).toHaveAttribute('href', '/jugador/2PP');
+  const favoritesSection = page.getByRole('region', { name: 'FAVORITOS' });
+  await expect(favoritesSection.getByRole('link', { name: /EzyPlayer/ })).toHaveAttribute('href', '/jugador/2PP');
 });

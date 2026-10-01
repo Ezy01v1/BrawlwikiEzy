@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { EventRotation } from '@/components/events/EventRotation';
 import { EventsSkeleton } from '@/components/events/EventsSkeleton';
-import { RecentSearches } from '@/components/search/RecentSearches';
+import { SavedList } from '@/components/search/RecentSearches';
 import { TagSearch } from '@/components/search/TagSearch';
 
 export default function HomePage() {
@@ -15,7 +15,8 @@ export default function HomePage() {
         <TagSearch variant="hero" />
       </section>
       <div className="mx-auto max-w-xl">
-        <RecentSearches />
+        <SavedList source="favorites" />
+        <SavedList source="recent" />
       </div>
       <section aria-labelledby="eventos" className="my-8">
         <h2 id="eventos" className="mb-3 font-display text-xl">
