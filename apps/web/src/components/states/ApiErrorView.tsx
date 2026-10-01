@@ -6,6 +6,12 @@ import { MaintenanceNotice } from './MaintenanceNotice';
 export function ApiErrorView({ error }: { error: ApiError }) {
   if (error.code === 'UPSTREAM_MAINTENANCE') return <MaintenanceNotice />;
   return (
-    <ErrorState code={error.code} message={error.message} requestId={error.requestId} retryAfter={error.retryAfter} />
+    <ErrorState
+      key={error.requestId ?? error.code}
+      code={error.code}
+      message={error.message}
+      requestId={error.requestId}
+      retryAfter={error.retryAfter}
+    />
   );
 }

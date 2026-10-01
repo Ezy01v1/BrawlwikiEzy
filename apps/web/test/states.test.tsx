@@ -80,6 +80,21 @@ describe('ApiErrorView y EmptyState', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Supercell no responde');
   });
 
+  it('rerender con otro RATE_LIMITED reinicia la cuenta regresiva (M1)', () => {
+    vi.useFakeTimers();
+    const { rerender } = render(
+      <ApiErrorView error={new ApiError('RATE_LIMITED', 'Espera', { status: 429, requestId: 'r1', retryAfter: 2 })} />,
+    );
+    act(() => vi.advanceTimersByTime(1000));
+    act(() => vi.advanceTimersByTime(1000));
+    expect(screen.getByRole('button', { name: 'Reintentar' })).toBeEnabled();
+
+    rerender(
+      <ApiErrorView error={new ApiError('RATE_LIMITED', 'Espera', { status: 429, requestId: 'r2', retryAfter: 5 })} />,
+    );
+    expect(screen.getByRole('button', { name: 'Reintentar en 5 s' })).toBeDisabled();
+  });
+
   it('EmptyState', () => {
     render(<EmptyState title="Sin partidas recientes">Juega una partida.</EmptyState>);
     expect(screen.getByText('Sin partidas recientes')).toBeInTheDocument();
