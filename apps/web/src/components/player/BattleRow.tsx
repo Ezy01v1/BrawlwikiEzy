@@ -56,7 +56,7 @@ function Team({ title, players, playerTag, starTag }: TeamProps) {
               ) : (
                 <Link
                   href={`/jugador/${p.tag}`}
-                  className="block truncate text-sm font-semibold underline-offset-2 hover:underline"
+                  className="block truncate text-sm font-semibold underline underline-offset-2"
                 >
                   {p.name}
                 </Link>

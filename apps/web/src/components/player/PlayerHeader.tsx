@@ -20,7 +20,7 @@ export function PlayerHeader({ player }: { player: Player }) {
           {player.club ? (
             <>
               {' · '}
-              <Link href={`/club/${player.club.tag}`} className="text-fg underline-offset-2 hover:underline">
+              <Link href={`/club/${player.club.tag}`} className="text-fg underline underline-offset-2">
                 {player.club.name}
               </Link>
             </>
