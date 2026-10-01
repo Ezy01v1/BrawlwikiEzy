@@ -10,12 +10,15 @@
     "node": ">=24"
   },
   "scripts": {
-    "dev": "npm run dev -w @brawlwiki/api",
+    "dev": "concurrently -n api,web -c yellow,cyan \"npm run dev -w @brawlwiki/api\" \"npm run dev -w @brawlwiki/web\"",
+    "dev:api": "npm run dev -w @brawlwiki/api",
+    "dev:web": "npm run dev -w @brawlwiki/web",
     "test": "npm test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present"
   },
   "devDependencies": {
     "@types/node": "^24.19.0",
+    "concurrently": "^10.0.5",
     "typescript": "~5.9.3",
     "vitest": "^5.0.2"
   }
