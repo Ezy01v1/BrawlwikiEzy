@@ -22,16 +22,16 @@ export function BrawlerTile({ brawler }: { brawler: PlayerBrawler }) {
       aria-label={label}
       className="overflow-hidden rounded-card border border-border bg-surface transition-transform duration-150 ease-out hover:-translate-y-0.5"
     >
-      <div className="relative flex aspect-square items-end justify-center" style={{ background: tileBackground(color) }}>
+      <div className="flex aspect-square items-end justify-center" style={{ background: tileBackground(color) }}>
         <GameImage src={brawler.imageUrl} alt={name} size={96} fallbackText={name} className="h-[85%] w-auto object-contain" />
-        <span className="absolute right-1 top-1 rounded-chip bg-[#0b0b0f]/80 px-1.5 text-[10px] font-bold text-[#f2f2f5]">
-          P{brawler.power}
-        </span>
       </div>
       <div aria-hidden="true" className="h-[3px]" style={{ background: color ?? NEUTRAL }} />
-      <div className="flex items-center justify-between gap-1 px-2 py-1">
-        <span className="truncate text-xs font-bold">{name}</span>
-        <span className="shrink-0 text-[10px] tabular-nums text-muted">{formatNumber(brawler.trophies)}</span>
+      <div className="space-y-1 px-2 py-1">
+        <span className="block truncate text-xs font-bold">{name}</span>
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] tabular-nums text-muted">{formatNumber(brawler.trophies)}</span>
+          <span className="text-[10px] font-bold tabular-nums">P{brawler.power}</span>
+        </div>
       </div>
     </article>
   );
