@@ -1,4 +1,4 @@
-import type { Battle, BattlePlayer, Player, PlayerBrawler } from '@brawlwiki/shared';
+import type { Battle, BattlePlayer, Club, ClubMember, Player, PlayerBrawler } from '@brawlwiki/shared';
 
 export function brawler(overrides: Partial<PlayerBrawler> = {}): PlayerBrawler {
   return {
@@ -114,3 +114,46 @@ export const BATTLES: Battle[] = [
     teams: [[battlePlayer('2PP', 'EzyPlayer', 16000000, 'SHELLY')], [battlePlayer('PPP', 'Rival1', 16000003, 'BROCK', 10)]],
   },
 ];
+
+export function clubMember(overrides: Partial<ClubMember> = {}): ClubMember {
+  return {
+    tag: '2PP',
+    name: 'EzyPlayer',
+    nameColor: null,
+    role: 'member',
+    trophies: 1000,
+    icon: { id: 28000000, imageUrl: 'https://cdn.brawlify.com/profile-icons/regular/28000000.png' },
+    ...overrides,
+  };
+}
+
+export const CLUB: Club = {
+  tag: '2YPLQ',
+  name: 'Los Cracks',
+  description: 'Club de prueba. ¡Activos diario!',
+  type: 'inviteOnly',
+  badgeId: 8000000,
+  badgeImageUrl: 'https://cdn.brawlify.com/club-badges/regular/8000000.png',
+  requiredTrophies: 25000,
+  trophies: 83610,
+  members: [
+    clubMember({ tag: '2PP', name: 'EzyPlayer', role: 'president', trophies: 42310 }),
+    clubMember({ tag: 'Y2YY', name: 'Mika', role: 'vicePresident', trophies: 40100 }),
+    clubMember({ tag: '8QU', name: 'SinClub', role: 'member', trophies: 1200 }),
+  ],
+};
+
+export const CLUB_B: Club = {
+  tag: '8CGRV',
+  name: 'Titanes',
+  description: '',
+  type: 'open',
+  badgeId: 8000010,
+  badgeImageUrl: 'https://cdn.brawlify.com/club-badges/regular/8000010.png',
+  requiredTrophies: 30000,
+  trophies: 83000,
+  members: [
+    clubMember({ tag: 'QQQ', name: 'Rival2', role: 'president', trophies: 45000 }),
+    clubMember({ tag: 'PPP', name: 'Rival1', role: 'member', trophies: 38000 }),
+  ],
+};
