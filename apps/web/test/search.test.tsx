@@ -62,12 +62,12 @@ describe('local-store', () => {
 });
 
 describe('TagSearch', () => {
-  it('normaliza " #2pp " y navega al perfil guardando el reciente', async () => {
+  it('normaliza " #2pp " y navega al perfil sin guardar el reciente (lo guarda el perfil al cargar)', async () => {
     render(<TagSearch />);
     await userEvent.type(screen.getByLabelText('Tag del jugador'), ' #2pp ');
     await userEvent.click(screen.getByRole('button', { name: 'Buscar' }));
     expect(push).toHaveBeenCalledWith('/jugador/2PP');
-    expect(getRecent()[0]).toEqual({ type: 'player', tag: '2PP' });
+    expect(getRecent()).toEqual([]);
   });
 
   it('tag inválido → error en línea y no navega', async () => {

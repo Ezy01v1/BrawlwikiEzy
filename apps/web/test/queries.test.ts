@@ -33,3 +33,22 @@ describe('forwardedFor (a través de getPlayer)', () => {
     expect(opts.forwardedFor).toBeNull();
   });
 });
+
+describe('rutas de las queries nuevas', () => {
+  it('arma las URLs de clubes, brawlers y rankings', async () => {
+    const q = await import('@/lib/queries');
+    headerMap = new Map();
+    await q.getClub('2YPLQ');
+    expect(apiGet.mock.calls.at(-1)![0]).toBe('/clubs/2YPLQ');
+    await q.getBrawlers();
+    expect(apiGet.mock.calls.at(-1)![0]).toBe('/brawlers');
+    await q.getBrawler(16000000);
+    expect(apiGet.mock.calls.at(-1)![0]).toBe('/brawlers/16000000');
+    await q.getPlayerRankings('MX');
+    expect(apiGet.mock.calls.at(-1)![0]).toBe('/rankings/players?region=MX&limit=50');
+    await q.getClubRankings('global', 10);
+    expect(apiGet.mock.calls.at(-1)![0]).toBe('/rankings/clubs?region=global&limit=10');
+    await q.getBrawlerRankings(16000001, 'ES', 10);
+    expect(apiGet.mock.calls.at(-1)![0]).toBe('/rankings/brawlers/16000001?region=ES&limit=10');
+  });
+});

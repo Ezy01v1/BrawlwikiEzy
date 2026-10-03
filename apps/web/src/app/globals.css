@@ -71,6 +71,13 @@ body {
   outline-offset: 2px;
 }
 
+/* Spec, sección 5: los h2 van en mayúsculas. El tamaño lo sigue poniendo cada componente. */
+@layer base {
+  h2 {
+    text-transform: uppercase;
+  }
+}
+
 .skeleton {
   border-radius: 8px;
   background: linear-gradient(90deg, var(--surface-2) 0%, var(--border) 50%, var(--surface-2) 100%);

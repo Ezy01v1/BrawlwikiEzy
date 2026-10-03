@@ -4,7 +4,6 @@ import { parseTag } from '@brawlwiki/shared/tags';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useId, useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { addRecent } from '@/lib/local-store';
 
 const INVALID = 'Ese tag no es válido. Los tags solo usan 0289PYLQGRJCUV (la letra O se toma como cero).';
 
@@ -23,7 +22,6 @@ export function TagSearch({ variant = 'hero', target = 'player' }: { variant?: '
       return;
     }
     setError(null);
-    addRecent({ type: target, tag });
     router.push(target === 'player' ? `/jugador/${tag}` : `/club/${tag}`);
   }
 

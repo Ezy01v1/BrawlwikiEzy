@@ -19,6 +19,8 @@ describe('navegación', () => {
     expect(isActive('/brawlers/16000000', '/brawlers')).toBe(true);
     expect(isActive('/club/2YPLQ', '/clubes/comparar')).toBe(true);
     expect(isActive('/rankingsx', '/rankings')).toBe(false);
+    expect(isActive('/clubes/comparar', '/clubes/comparar')).toBe(true);
+    expect(isActive('/clubesx', '/clubes/comparar')).toBe(false);
   });
 
   it('NavLinks inferior marca el link activo', () => {

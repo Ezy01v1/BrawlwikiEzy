@@ -12,7 +12,9 @@ export const NAV_ITEMS = [
 
 export function isActive(pathname: string, href: string): boolean {
   if (href === '/') return pathname === '/';
-  if (href === '/clubes/comparar') return pathname.startsWith('/clubes') || pathname.startsWith('/club/');
+  if (href === '/clubes/comparar') {
+    return pathname === '/clubes' || pathname.startsWith('/clubes/') || pathname.startsWith('/club/');
+  }
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
