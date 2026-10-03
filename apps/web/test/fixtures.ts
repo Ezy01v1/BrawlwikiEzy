@@ -1,4 +1,13 @@
-import type { Battle, BattlePlayer, Club, ClubMember, Player, PlayerBrawler } from '@brawlwiki/shared';
+import type {
+  Battle,
+  BattlePlayer,
+  Club,
+  ClubMember,
+  ClubRanking,
+  Player,
+  PlayerBrawler,
+  PlayerRanking,
+} from '@brawlwiki/shared';
 
 export function brawler(overrides: Partial<PlayerBrawler> = {}): PlayerBrawler {
   return {
@@ -157,3 +166,32 @@ export const CLUB_B: Club = {
     clubMember({ tag: 'PPP', name: 'Rival1', role: 'member', trophies: 38000 }),
   ],
 };
+
+const icon = (id: number) => ({ id, imageUrl: `https://cdn.brawlify.com/profile-icons/regular/${id}.png` });
+
+export const RANKED_PLAYERS: PlayerRanking[] = [
+  { rank: 1, tag: 'YYYY', name: 'xXProXx', nameColor: null, trophies: 98410, icon: icon(28000010), clubName: 'Tribe' },
+  { rank: 2, tag: 'QQQ', name: 'Rival2', nameColor: null, trophies: 97022, icon: icon(28000003), clubName: 'Titanes' },
+  { rank: 3, tag: 'LLLQ', name: 'SoloPro', nameColor: null, trophies: 96870, icon: icon(28000011), clubName: null },
+];
+
+export const RANKED_CLUBS: ClubRanking[] = [
+  {
+    rank: 1,
+    tag: '2YPLQ',
+    name: 'Los Cracks',
+    trophies: 1020000,
+    badgeId: 8000000,
+    badgeImageUrl: 'https://cdn.brawlify.com/club-badges/regular/8000000.png',
+    memberCount: 30,
+  },
+  {
+    rank: 2,
+    tag: '8CGRV',
+    name: 'Titanes',
+    trophies: 940000,
+    badgeId: 8000010,
+    badgeImageUrl: 'https://cdn.brawlify.com/club-badges/regular/8000010.png',
+    memberCount: 27,
+  },
+];
