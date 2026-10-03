@@ -59,12 +59,14 @@ Medido con Lighthouse 13 (móvil, throttling simulado) contra un build de produc
 
 | Página | Performance | Accesibilidad | LCP | CLS | TBT |
 |---|---|---|---|---|---|
-| `/` | 94 | 100 | 2.67 s | 0.028 | 175 ms |
-| `/jugador/2PP` | 97 | 100 | 2.50 s | 0.000 | 103 ms |
-| `/club/2YPLQ` | 96 | 100 | 2.59 s | 0.007 | 105 ms |
-| `/rankings` | 97 | 100 | 2.54 s | 0.000 | 75 ms |
-| `/brawlers` | 89 | 100 | 2.59 s | 0.175 | 54 ms |
+| `/` | 93 | 100 | 2.74 s | 0.008 | 204 ms |
+| `/jugador/2PP` | 93 | 100 | 2.87 s | 0.000 | 150 ms |
+| `/club/2YPLQ` | 86 | 100 | 2.75 s | 0.005 | 397 ms |
+| `/rankings` | 94 | 100 | 2.92 s | 0.000 | 149 ms |
+| `/brawlers` | 95 | 100 | 2.84 s | 0.000 | 71 ms |
 
-Medido el 2026-10-02.
+Medido el 2026-10-03. El TBT varía bastante entre corridas en esta máquina (por ejemplo, `/club/2YPLQ` midió 105 ms el 2026-10-02).
+
+El objetivo de LCP (< 1.5 s) **no se cumple** en `/` ni en `/jugador/2PP` con el throttling móvil simulado de Lighthouse. El TTFB es de unos 25 ms y el FCP/LCP sin throttling ronda los 0.5–0.7 s; el LCP simulado lo domina el costo del bundle de JavaScript. Es una brecha conocida de la v1, pendiente de decisión.
 
 Contrato de la API: `GET /api/v1/openapi.json`. Diseño completo: `docs/superpowers/specs/2026-09-29-brawlwiki-v1-design.md`.
