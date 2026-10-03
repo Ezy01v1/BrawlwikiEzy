@@ -1,6 +1,7 @@
 import type {
   Battle,
   BattlePlayer,
+  Brawler,
   Club,
   ClubMember,
   ClubRanking,
@@ -194,4 +195,37 @@ export const RANKED_CLUBS: ClubRanking[] = [
     badgeImageUrl: 'https://cdn.brawlify.com/club-badges/regular/8000010.png',
     memberCount: 27,
   },
+];
+
+export function catalogBrawler(overrides: Partial<Brawler> = {}): Brawler {
+  return {
+    id: 16000000,
+    name: 'SHELLY',
+    imageUrl: 'https://cdn.brawlify.com/brawlers/borderless/16000000.png',
+    rarity: null,
+    class: null,
+    gadgets: [],
+    starPowers: [],
+    ...overrides,
+  };
+}
+
+/** Los 4 brawlers de los fixtures de la API; Bull trae además metadatos para probar los filtros. */
+export const CATALOG: Brawler[] = [
+  catalogBrawler({
+    id: 16000000,
+    name: 'SHELLY',
+    gadgets: [{ id: 23000255, name: 'FAST FORWARD' }],
+    starPowers: [{ id: 23000076, name: 'SHELL SHOCK' }],
+  }),
+  catalogBrawler({ id: 16000001, name: 'COLT', imageUrl: 'https://cdn.brawlify.com/brawlers/borderless/16000001.png' }),
+  catalogBrawler({
+    id: 16000002,
+    name: 'BULL',
+    imageUrl: 'https://cdn.brawlify.com/brawlers/borderless/16000002.png',
+    rarity: { name: 'Rare', color: '#68fd58' },
+    class: 'Tank',
+    gadgets: [{ id: 23000272, name: 'T-BONE INJECTOR' }],
+  }),
+  catalogBrawler({ id: 16000003, name: 'BROCK', imageUrl: 'https://cdn.brawlify.com/brawlers/borderless/16000003.png' }),
 ];

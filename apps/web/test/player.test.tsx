@@ -35,7 +35,7 @@ describe('orden y parámetros', () => {
 describe('BrawlerTile y BrawlerGrid', () => {
   it('tile con nombre en formato título, rareza en el aria-label y fondo neutro sin rareza', () => {
     render(<BrawlerTile brawler={PLAYER.brawlers[0]!} />);
-    expect(screen.getByRole('article', { name: 'Bull, 1,000 trofeos, poder 11, Rare' })).toBeInTheDocument();
+    expect(screen.getByRole('article', { name: 'Bull, 1,000 trofeos, poder 11, Raro' })).toBeInTheDocument();
     expect(screen.getByText('Bull')).toBeInTheDocument();
     expect(tileBackground(null)).toContain('#3a3a4a');
     expect(tileBackground('#68fd58')).toContain('#68fd58');
