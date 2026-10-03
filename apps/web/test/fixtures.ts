@@ -1,4 +1,14 @@
-import type { Battle, BattlePlayer, Player, PlayerBrawler } from '@brawlwiki/shared';
+import type {
+  Battle,
+  BattlePlayer,
+  Brawler,
+  Club,
+  ClubMember,
+  ClubRanking,
+  Player,
+  PlayerBrawler,
+  PlayerRanking,
+} from '@brawlwiki/shared';
 
 export function brawler(overrides: Partial<PlayerBrawler> = {}): PlayerBrawler {
   return {
@@ -113,4 +123,109 @@ export const BATTLES: Battle[] = [
     starPlayerTag: null,
     teams: [[battlePlayer('2PP', 'EzyPlayer', 16000000, 'SHELLY')], [battlePlayer('PPP', 'Rival1', 16000003, 'BROCK', 10)]],
   },
+];
+
+export function clubMember(overrides: Partial<ClubMember> = {}): ClubMember {
+  return {
+    tag: '2PP',
+    name: 'EzyPlayer',
+    nameColor: null,
+    role: 'member',
+    trophies: 1000,
+    icon: { id: 28000000, imageUrl: 'https://cdn.brawlify.com/profile-icons/regular/28000000.png' },
+    ...overrides,
+  };
+}
+
+export const CLUB: Club = {
+  tag: '2YPLQ',
+  name: 'Los Cracks',
+  description: 'Club de prueba. ¡Activos diario!',
+  type: 'inviteOnly',
+  badgeId: 8000000,
+  badgeImageUrl: 'https://cdn.brawlify.com/club-badges/regular/8000000.png',
+  requiredTrophies: 25000,
+  trophies: 83610,
+  members: [
+    clubMember({ tag: '2PP', name: 'EzyPlayer', role: 'president', trophies: 42310 }),
+    clubMember({ tag: 'Y2YY', name: 'Mika', role: 'vicePresident', trophies: 40100 }),
+    clubMember({ tag: '8QU', name: 'SinClub', role: 'member', trophies: 1200 }),
+  ],
+};
+
+export const CLUB_B: Club = {
+  tag: '8CGRV',
+  name: 'Titanes',
+  description: '',
+  type: 'open',
+  badgeId: 8000010,
+  badgeImageUrl: 'https://cdn.brawlify.com/club-badges/regular/8000010.png',
+  requiredTrophies: 30000,
+  trophies: 83000,
+  members: [
+    clubMember({ tag: 'QQQ', name: 'Rival2', role: 'president', trophies: 45000 }),
+    clubMember({ tag: 'PPP', name: 'Rival1', role: 'member', trophies: 38000 }),
+  ],
+};
+
+const icon = (id: number) => ({ id, imageUrl: `https://cdn.brawlify.com/profile-icons/regular/${id}.png` });
+
+export const RANKED_PLAYERS: PlayerRanking[] = [
+  { rank: 1, tag: 'YYYY', name: 'xXProXx', nameColor: null, trophies: 98410, icon: icon(28000010), clubName: 'Tribe' },
+  { rank: 2, tag: 'QQQ', name: 'Rival2', nameColor: null, trophies: 97022, icon: icon(28000003), clubName: 'Titanes' },
+  { rank: 3, tag: 'LLLQ', name: 'SoloPro', nameColor: null, trophies: 96870, icon: icon(28000011), clubName: null },
+];
+
+export const RANKED_CLUBS: ClubRanking[] = [
+  {
+    rank: 1,
+    tag: '2YPLQ',
+    name: 'Los Cracks',
+    trophies: 1020000,
+    badgeId: 8000000,
+    badgeImageUrl: 'https://cdn.brawlify.com/club-badges/regular/8000000.png',
+    memberCount: 30,
+  },
+  {
+    rank: 2,
+    tag: '8CGRV',
+    name: 'Titanes',
+    trophies: 940000,
+    badgeId: 8000010,
+    badgeImageUrl: 'https://cdn.brawlify.com/club-badges/regular/8000010.png',
+    memberCount: 27,
+  },
+];
+
+export function catalogBrawler(overrides: Partial<Brawler> = {}): Brawler {
+  return {
+    id: 16000000,
+    name: 'SHELLY',
+    imageUrl: 'https://cdn.brawlify.com/brawlers/borderless/16000000.png',
+    rarity: null,
+    class: null,
+    gadgets: [],
+    starPowers: [],
+    ...overrides,
+  };
+}
+
+/** Los 4 brawlers de los fixtures de la API; Bull trae además metadatos para probar los filtros. */
+export const CATALOG: Brawler[] = [
+  catalogBrawler({
+    id: 16000000,
+    name: 'SHELLY',
+    gadgets: [{ id: 23000255, name: 'FAST FORWARD' }],
+    starPowers: [{ id: 23000076, name: 'SHELL SHOCK' }],
+  }),
+  catalogBrawler({ id: 16000001, name: 'COLT', imageUrl: 'https://cdn.brawlify.com/brawlers/borderless/16000001.png' }),
+  catalogBrawler({
+    id: 16000002,
+    name: 'BULL',
+    imageUrl: 'https://cdn.brawlify.com/brawlers/borderless/16000002.png',
+    rarity: { name: 'Rare', color: '#68fd58' },
+    class: 'Tank',
+    gadgets: [{ id: 23000272, name: 'T-BONE INJECTOR' }],
+  }),
+  catalogBrawler({ id: 16000003, name: 'BROCK', imageUrl: 'https://cdn.brawlify.com/brawlers/borderless/16000003.png' }),
 ];
