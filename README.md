@@ -35,8 +35,36 @@ La web solo habla con la API desde el servidor de Next (`API_INTERNAL_URL`, por 
 | `npm test` | Tests unitarios de todos los paquetes |
 | `npm run typecheck` | Chequeo de tipos |
 | `npm run e2e` | Playwright + axe. Levanta su propia API con fixtures (:4100) y un build de producción de la web (:3100). La primera vez: `npx playwright install chromium` |
-
-`npm run e2e` deja en `apps/web/.next` un build con `NEXT_PUBLIC_SITE_URL=http://localhost:3100`; antes de desplegar, correr `npm run build -w @brawlwiki/web` con las variables de producción.
 | `npm run meta:import -w @brawlwiki/api -- <ruta absoluta a brawlers.json>` | Actualiza rareza y clase de los brawlers. El JSON se descarga desde el navegador en https://api.brawlify.com/v1/brawlers |
+
+- `npm run e2e` deja en `apps/web/.next` un build con `NEXT_PUBLIC_SITE_URL=http://localhost:3100`; antes de desplegar, correr `npm run build -w @brawlwiki/web` con las variables de producción.
+- Mientras no se corra `meta:import`, la API no tiene rareza ni clase: el catálogo oculta esos filtros y el detalle muestra "Sin dato".
+
+## Páginas
+
+| Ruta | Qué muestra |
+|---|---|
+| `/` | Búsqueda, favoritos, recientes y eventos activos |
+| `/jugador/[tag]` | Perfil con resumen, brawlers y partidas |
+| `/club/[tag]` | Club con estadísticas y miembros |
+| `/clubes/comparar?a=&b=` | Búsqueda de clubes y comparador lado a lado |
+| `/rankings?tipo=&region=&brawler=` | Top de jugadores, clubes o por brawler, global o por país |
+| `/brawlers?q=&rareza=&clase=` | Catálogo con búsqueda y filtros |
+| `/brawlers/[id]` | Detalle con gadgets, habilidades estelares y mejores jugadores |
+| `/acerca` | Origen de los datos, privacidad y aviso legal |
+
+## Rendimiento
+
+Medido con Lighthouse 13 (móvil, throttling simulado) contra un build de producción y la API en modo fixtures. El spec pide LCP < 1.5 s, CLS < 0.05 y TBT < 200 ms en `/` y `/jugador/[tag]`.
+
+| Página | Performance | Accesibilidad | LCP | CLS | TBT |
+|---|---|---|---|---|---|
+| `/` | 94 | 100 | 2.67 s | 0.028 | 175 ms |
+| `/jugador/2PP` | 97 | 100 | 2.50 s | 0.000 | 103 ms |
+| `/club/2YPLQ` | 96 | 100 | 2.59 s | 0.007 | 105 ms |
+| `/rankings` | 97 | 100 | 2.54 s | 0.000 | 75 ms |
+| `/brawlers` | 89 | 100 | 2.59 s | 0.175 | 54 ms |
+
+Medido el 2026-10-02.
 
 Contrato de la API: `GET /api/v1/openapi.json`. Diseño completo: `docs/superpowers/specs/2026-09-29-brawlwiki-v1-design.md`.

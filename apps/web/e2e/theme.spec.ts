@@ -27,3 +27,21 @@ test('el tema claro persiste al recargar y la página sigue accesible', async ({
   await expect(html).toHaveAttribute('data-theme', 'light');
   await expectAccessible(page);
 });
+
+test('en modo claro las secciones nuevas no tienen violaciones de axe', async ({ page, baseURL }) => {
+  await page.context().addCookies([{ name: 'theme', value: 'light', url: baseURL }]);
+  const paths = [
+    '/club/2YPLQ',
+    '/clubes/comparar?a=2YPLQ&b=8CGRV',
+    '/rankings',
+    '/brawlers',
+    '/brawlers/16000000',
+    '/acerca',
+  ];
+  for (const path of paths) {
+    await page.goto(path);
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expectAccessible(page);
+  }
+});
