@@ -16,7 +16,7 @@ export function ClubCompare({ a, b }: { a: Club; b: Club }) {
       </h2>
       <div className="mb-3 grid grid-cols-2 gap-2">
         {SIDES.map((side) => (
-          <div key={side} className="flex min-w-0 items-center gap-2 rounded-card bg-surface-2 p-2">
+          <div key={side} className="relative flex min-h-11 min-w-0 items-center gap-2 rounded-card bg-surface-2 p-2">
             <GameImage
               src={clubs[side].badgeImageUrl}
               alt={`Escudo de ${clubs[side].name}`}
@@ -24,7 +24,7 @@ export function ClubCompare({ a, b }: { a: Club; b: Club }) {
               fallbackText={clubs[side].name}
               className="rounded-chip"
             />
-            <Link href={`/club/${clubs[side].tag}`} className="min-w-0 truncate font-display underline underline-offset-2">
+            <Link href={`/club/${clubs[side].tag}`} className="min-w-0 truncate font-display underline underline-offset-2 after:absolute after:inset-0 after:content-['']">
               {clubs[side].name}
             </Link>
           </div>

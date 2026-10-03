@@ -26,7 +26,7 @@ export function ClubStats({ club }: { club: Club }) {
         ))}
       </dl>
       {club.description && (
-        <p data-club-description className="mt-3 whitespace-pre-line break-words text-sm text-muted">
+        <p data-club-description className="mt-3 whitespace-pre-line break-words [overflow-wrap:anywhere] text-sm text-muted">
           {club.description}
         </p>
       )}

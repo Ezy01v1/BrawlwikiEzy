@@ -50,6 +50,16 @@ test('a 375px el club no tiene scroll horizontal', async ({ page }) => {
   await expectNoHorizontalScroll(page);
 });
 
+test('a 375px una descripción larga sin espacios no genera scroll horizontal', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 800 });
+  await page.goto('/club/2YPLQ');
+  await expect(page.getByRole('heading', { level: 1, name: 'Los Cracks' })).toBeVisible();
+  await page.evaluate(() => {
+    document.querySelector('[data-club-description]')!.textContent = 'A'.repeat(300);
+  });
+  await expectNoHorizontalScroll(page);
+});
+
 test('la imagen OG del club responde un PNG', async ({ page, request }) => {
   await page.goto('/club/2YPLQ');
   const og = await page.locator('meta[property="og:image"]').getAttribute('content');

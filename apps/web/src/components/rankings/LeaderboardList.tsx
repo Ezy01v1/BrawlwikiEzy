@@ -22,13 +22,13 @@ interface RowProps {
 /** Una sola fila para móvil y escritorio: en móvil el detalle va debajo del nombre; desde md, en su propia columna. */
 function Row({ rank, image, href, name, detail, trophies }: RowProps) {
   return (
-    <li className={ROW}>
+    <li className={`${ROW} relative`}>
       <span className="col-start-1 row-span-2 row-start-1 md:row-span-1">
         <RankBadge rank={rank} />
       </span>
       <span className="col-start-2 row-start-1 flex min-w-0 items-center gap-2">
         {image}
-        <Link href={href} className="min-w-0 truncate font-semibold underline underline-offset-2">
+        <Link href={href} className="min-w-0 truncate font-semibold underline underline-offset-2 after:absolute after:inset-0 after:content-['']">
           {name}
         </Link>
       </span>

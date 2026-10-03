@@ -48,7 +48,7 @@ export default async function ClubPage({ params }: PageProps<'/club/[tag]'>) {
       <ClubHeader club={club} />
       <StaleBadge meta={meta} />
       <div className="mt-4 grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start">
-        <div>
+        <div className="min-w-0">
           <ClubStats club={club} />
           <ButtonLink href={`/clubes/comparar?a=${club.tag}`} variant="secondary" className="mt-3 w-full">
             Comparar con otro club

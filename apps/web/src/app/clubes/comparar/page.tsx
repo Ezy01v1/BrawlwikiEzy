@@ -30,7 +30,7 @@ export default async function ClubsPage({ searchParams }: PageProps<'/clubes/com
         <h2 id="comparar-title" className="mb-2 font-display text-lg">
           Comparar dos clubes
         </h2>
-        <CompareForm a={p.rawA} b={p.rawB} errors={p.errors} />
+        <CompareForm key={`${p.rawA}|${p.rawB}`} a={p.rawA} b={p.rawB} errors={p.errors} hints={p.hints} />
         {ready && (
           <Suspense key={`${p.a}-${p.b}`} fallback={<CompareSkeleton />}>
             <CompareResult a={p.a!} b={p.b!} />

@@ -1,4 +1,4 @@
-import { expect, expectAccessible, expectNoHorizontalScroll, test } from './fixtures';
+import { expect, expectAccessible, expectNoHorizontalScroll, gotoReady, test } from './fixtures';
 
 test('ranking global de jugadores con podio en texto y links al perfil', async ({ page }) => {
   await page.goto('/rankings');
@@ -48,4 +48,12 @@ test('a 375px los rankings no tienen scroll horizontal', async ({ page }) => {
     await expect(page.getByRole('heading', { level: 1, name: 'Rankings' })).toBeVisible();
     await expectNoHorizontalScroll(page);
   }
+});
+
+test('la nav inferior a Rankings restablece el select de región', async ({ page }) => {
+  await gotoReady(page, '/rankings?tipo=jugadores&region=MX');
+  await expect(page.getByLabel('Región')).toHaveValue('MX');
+  await page.getByRole('navigation', { name: 'Navegación inferior' }).getByRole('link', { name: 'Rankings' }).click();
+  await expect(page).toHaveURL(/\/rankings$/);
+  await expect(page.getByLabel('Región')).toHaveValue('global');
 });

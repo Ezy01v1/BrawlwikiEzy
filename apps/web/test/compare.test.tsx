@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { ClubCompare } from '@/components/club/ClubCompare';
 import { CompareForm } from '@/components/club/CompareForm';
-import { COMPARE_INVALID, compareClubs, parseCompareParams } from '@/lib/clubs';
+import { COMPARE_INVALID, COMPARE_MISSING, compareClubs, parseCompareParams } from '@/lib/clubs';
 import { CLUB, CLUB_B } from './fixtures';
 
 describe('compareClubs', () => {
@@ -32,16 +32,34 @@ describe('compareClubs', () => {
 
 describe('parseCompareParams', () => {
   it('normaliza, valida cada campo y rechaza el mismo club dos veces', () => {
-    expect(parseCompareParams()).toEqual({ a: null, b: null, rawA: '', rawB: '', errors: {} });
+    expect(parseCompareParams()).toEqual({ a: null, b: null, rawA: '', rawB: '', errors: {}, hints: {} });
     expect(parseCompareParams(' #2yplq ', '8cgrv')).toEqual({
       a: '2YPLQ',
       b: '8CGRV',
       rawA: ' #2yplq ',
       rawB: '8cgrv',
       errors: {},
+      hints: {},
     });
     expect(parseCompareParams('hola', '').errors).toEqual({ a: COMPARE_INVALID });
     expect(parseCompareParams('2YPLQ', '#2yplq').errors).toEqual({ b: 'Elige un club distinto al Club A.' });
+  });
+});
+
+describe('pista cuando falta un club', () => {
+  it('pide el otro club solo si el dado es válido y el otro está vacío', () => {
+    expect(parseCompareParams('2YPLQ', '').hints).toEqual({ b: COMPARE_MISSING });
+    expect(parseCompareParams('', '#8cgrv').hints).toEqual({ a: COMPARE_MISSING });
+    expect(parseCompareParams('hola', '').hints).toEqual({});
+    expect(parseCompareParams('', '').hints).toEqual({});
+  });
+
+  it('CompareForm: pista como texto simple enlazada con aria-describedby, sin alert', () => {
+    render(<CompareForm a="2YPLQ" b="" errors={{}} hints={{ b: COMPARE_MISSING }} />);
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    const b = screen.getByLabelText('Club B');
+    expect(b).not.toHaveAttribute('aria-invalid');
+    expect(b).toHaveAccessibleDescription(COMPARE_MISSING);
   });
 });
 

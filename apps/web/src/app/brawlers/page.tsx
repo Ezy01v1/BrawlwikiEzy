@@ -37,7 +37,7 @@ export default async function BrawlersPage({ searchParams }: PageProps<'/brawler
       <h1 className="mt-6 font-display text-3xl">Brawlers</h1>
       <StaleBadge meta={r.value.meta} />
       <div className="mt-3">
-        <BrawlerFiltersForm facets={facets} values={values} />
+        <BrawlerFiltersForm key={JSON.stringify(values)} facets={facets} values={values} />
       </div>
       {noMetadata && <p className="mt-2 text-xs text-muted">La rareza y la clase todavía no están disponibles.</p>}
       <p role="status" className="mt-3 text-sm text-muted">

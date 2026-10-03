@@ -69,7 +69,10 @@ export interface CompareParams {
   rawA: string;
   rawB: string;
   errors: { a?: string; b?: string };
+  hints: { a?: string; b?: string };
 }
+
+export const COMPARE_MISSING = 'Ingresa el tag del otro club para comparar.';
 
 export function parseCompareParams(rawA = '', rawB = ''): CompareParams {
   const a = rawA.trim() ? parseTag(rawA) : null;
@@ -78,5 +81,8 @@ export function parseCompareParams(rawA = '', rawB = ''): CompareParams {
   if (rawA.trim() && !a) errors.a = COMPARE_INVALID;
   if (rawB.trim() && !b) errors.b = COMPARE_INVALID;
   else if (a && b && a === b) errors.b = 'Elige un club distinto al Club A.';
-  return { a, b, rawA, rawB, errors };
+  const hints: CompareParams['hints'] = {};
+  if (a && !errors.a && !rawB.trim()) hints.b = COMPARE_MISSING;
+  if (b && !errors.b && !rawA.trim()) hints.a = COMPARE_MISSING;
+  return { a, b, rawA, rawB, errors, hints };
 }

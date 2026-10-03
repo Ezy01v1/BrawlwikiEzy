@@ -36,7 +36,7 @@ export default async function RankingsPage({ searchParams }: PageProps<'/ranking
         {rankingSubtitle(region, selected ? displayName(selected.name) : undefined)}
       </p>
       <Tabs label="Tipo de ranking" items={rankingTabs({ tipo, region, brawler })} />
-      <RankingFilters tipo={tipo} region={region} brawler={brawler} brawlers={brawlers} />
+      <RankingFilters key={`${tipo}|${region}|${brawler ?? ''}`} tipo={tipo} region={region} brawler={brawler} brawlers={brawlers} />
       <div className="mt-4">
         {brawlersResult && !brawlersResult.ok ? (
           <ApiErrorView error={brawlersResult.error} />
