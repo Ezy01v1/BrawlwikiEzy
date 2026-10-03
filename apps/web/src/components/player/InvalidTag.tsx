@@ -1,6 +1,6 @@
 import { TagSearch } from '@/components/search/TagSearch';
 
-export function InvalidTag() {
+export function InvalidTag({ target = 'player' }: { target?: 'player' | 'club' }) {
   return (
     <div className="mx-auto my-10 max-w-md text-center">
       <h1 className="font-display text-2xl">Tag inválido</h1>
@@ -10,7 +10,7 @@ export function InvalidTag() {
         un cero (0).
       </p>
       <div className="mt-4 text-left">
-        <TagSearch variant="hero" />
+        <TagSearch variant="hero" target={target} />
       </div>
     </div>
   );
