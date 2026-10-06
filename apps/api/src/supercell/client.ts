@@ -31,6 +31,7 @@ export function createSupercellClient(opts: SupercellClientOptions): SupercellAp
   const timeoutMs = opts.timeoutMs ?? 2500;
   const retryDelayMs = opts.retryDelayMs ?? 300;
   const limit = createLimiter(opts.maxConcurrent ?? 8);
+  let authRejected = false;
 
   async function once<T>(path: string): Promise<T> {
     let res: Response;
@@ -43,6 +44,7 @@ export function createSupercellClient(opts: SupercellClientOptions): SupercellAp
       throw new Retryable(new AppError('UPSTREAM_UNAVAILABLE', undefined, { cause }));
     }
 
+    authRejected = res.status === 403;
     if (res.ok) {
       try {
         return (await res.json()) as T;
@@ -90,6 +92,7 @@ export function createSupercellClient(opts: SupercellClientOptions): SupercellAp
 
   return {
     mode: 'live',
+    isAuthRejected: () => authRejected,
     getPlayer: (tag) => request(`/players/${tagPath(tag)}`),
     getBattleLog: (tag) => request(`/players/${tagPath(tag)}/battlelog`),
     getClub: (tag) => request(`/clubs/${tagPath(tag)}`),

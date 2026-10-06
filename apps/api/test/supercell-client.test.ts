@@ -90,6 +90,19 @@ describe('createSupercellClient', () => {
     expect(JSON.stringify(error.mock.calls)).toContain('accessDenied.invalidIp');
   });
 
+  it('isAuthRejected: true tras un 403 y vuelve a false con la siguiente respuesta OK', async () => {
+    const f = fakeFetch([
+      { status: 403, body: { reason: 'accessDenied.invalidIp' } },
+      { status: 200, body: { tag: '#2PP' } },
+    ]);
+    const c = client(f);
+    expect(c.isAuthRejected?.()).toBe(false);
+    await expect(c.getPlayer('2PP')).rejects.toMatchObject({ code: 'UPSTREAM_UNAVAILABLE' });
+    expect(c.isAuthRejected?.()).toBe(true);
+    await c.getPlayer('2PP');
+    expect(c.isAuthRejected?.()).toBe(false);
+  });
+
   it('timeout → UPSTREAM_UNAVAILABLE', async () => {
     const hang = ((_url: string, init?: RequestInit) =>
       new Promise((_resolve, reject) => {
