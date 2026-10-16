@@ -7,9 +7,10 @@ export function createHealth(deps: {
   supercell: SupercellApi;
   isCoolingDown(): Promise<boolean>;
 }): () => Promise<Health> {
-  return async () => ({
-    status: 'ok',
-    cache: deps.cache.kind,
-    supercell: deps.supercell.mode === 'mock' ? 'mock' : (await deps.isCoolingDown()) ? 'cooldown' : 'ok',
-  });
+  async function supercellStatus(): Promise<Health['supercell']> {
+    if (deps.supercell.mode === 'mock') return 'mock';
+    if (deps.supercell.isAuthRejected?.()) return 'unauthorized';
+    return (await deps.isCoolingDown()) ? 'cooldown' : 'ok';
+  }
+  return async () => ({ status: 'ok', cache: deps.cache.kind, supercell: await supercellStatus() });
 }

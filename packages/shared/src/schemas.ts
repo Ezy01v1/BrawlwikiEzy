@@ -187,6 +187,6 @@ export type ClubRanking = z.infer<typeof ClubRankingSchema>;
 export const HealthSchema = z.object({
   status: z.literal('ok'),
   cache: z.enum(['memory', 'redis']),
-  supercell: z.enum(['ok', 'cooldown', 'mock']),
+  supercell: z.enum(['ok', 'cooldown', 'unauthorized', 'mock']),
 });
 export type Health = z.infer<typeof HealthSchema>;

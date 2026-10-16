@@ -120,6 +120,8 @@ export interface RawList<T> {
 /** Tags siempre normalizados y sin '#'. `region` es 'global' o un código ISO de 2 letras en mayúsculas. */
 export interface SupercellApi {
   readonly mode: 'live' | 'mock';
+  /** true si la última respuesta de Supercell fue un 403 (key inválida o IP no autorizada). */
+  isAuthRejected?(): boolean;
   getPlayer(tag: string): Promise<RawPlayer>;
   getBattleLog(tag: string): Promise<RawBattleLog>;
   getClub(tag: string): Promise<RawClub>;
