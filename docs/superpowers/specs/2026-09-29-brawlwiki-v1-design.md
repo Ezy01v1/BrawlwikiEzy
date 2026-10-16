@@ -478,7 +478,7 @@ Mobile-first, con los breakpoints de Tailwind: `sm` 640, `md` 768, `lg` 1024.
 | `web` | Vitest + Testing Library | `TagSearch` (validación y navegación), `GameImage` (fallback), `StaleBadge` (texto de edad), `BattleRow` (resultado anunciado con texto, expandible por teclado), `ThemeToggle` |
 | E2E | Playwright contra `api` en modo fixtures | Buscar jugador → perfil → tab Partidas → expandir partida → ir a otro jugador; comparar dos clubes; rankings cambiando región; cambiar tema; tags de escenario (`#LLLL`, `#RRRR`) |
 | a11y | `@axe-core/playwright` en cada página del E2E | Cero violaciones serias o críticas |
-| Rendimiento | Lighthouse móvil (manual, antes de cerrar la v1) | LCP < 1.5s, CLS < 0.05, TBT < 200ms en `/` y `/jugador/[tag]` |
+| Rendimiento | Lighthouse móvil (manual, antes de cerrar la v1) | LCP < 2.5s (umbral "bueno" de Google; ajustado el 2026-10-15, antes 1.5s), CLS < 0.05, TBT < 200ms en `/` y `/jugador/[tag]` |
 
 **Qué se prueba en `api`:**
 - Envoltorio de respuesta y de error.

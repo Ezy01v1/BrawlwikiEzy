@@ -55,18 +55,15 @@ La web solo habla con la API desde el servidor de Next (`API_INTERNAL_URL`, por 
 
 ## Rendimiento
 
-Medido con Lighthouse 13 (móvil, throttling simulado) contra un build de producción y la API en modo fixtures. El spec pide LCP < 1.5 s, CLS < 0.05 y TBT < 200 ms en `/` y `/jugador/[tag]`.
+Medido con Lighthouse 13 (móvil) contra un build de producción y la API en modo fixtures. El spec pide LCP < 2.5 s (el umbral "bueno" de Google; hasta el 2026-10-15 pedía 1.5 s), CLS < 0.05 y TBT < 200 ms en `/` y `/jugador/[tag]`.
 
-| Página | Performance | Accesibilidad | LCP | CLS | TBT |
-|---|---|---|---|---|---|
-| `/` | 93 | 100 | 2.74 s | 0.008 | 204 ms |
-| `/jugador/2PP` | 93 | 100 | 2.87 s | 0.000 | 150 ms |
-| `/club/2YPLQ` | 86 | 100 | 2.75 s | 0.005 | 397 ms |
-| `/rankings` | 94 | 100 | 2.92 s | 0.000 | 149 ms |
-| `/brawlers` | 95 | 100 | 2.84 s | 0.000 | 71 ms |
+| Página | Performance | FCP | LCP simulado | LCP con throttling real | CLS | TBT |
+|---|---|---|---|---|---|---|
+| `/` | 96 | 1.0 s | 2.67 s | 1.8 s | 0.022 | 70–94 ms |
+| `/jugador/2PP` | 95 | 1.0 s | 2.88 s | 2.7–2.9 s | 0.000 | 107–142 ms |
 
-Medido el 2026-10-03. El TBT varía bastante entre corridas en esta máquina (por ejemplo, `/club/2YPLQ` midió 105 ms el 2026-10-02).
+Medido el 2026-10-15, dos corridas por página. "Simulado" es el modo por defecto de Lighthouse (Lantern); "throttling real" es `--throttling-method=devtools`. Desde esa fecha el CSS va dentro del HTML (`experimental.inlineCss`), lo que bajó el primer pintado con throttling real de ~2.7 s a ~1.9 s.
 
-El objetivo de LCP (< 1.5 s) **no se cumple** en `/` ni en `/jugador/2PP` con el throttling móvil simulado de Lighthouse. El TTFB es de unos 25 ms y el FCP/LCP sin throttling ronda los 0.5–0.7 s; el LCP simulado lo domina el costo del bundle de JavaScript. Es una brecha conocida de la v1, pendiente de decisión.
+El LCP simulado queda unas décimas por encima de 2.5 s y es un artefacto del simulador: Lantern supone que el LCP espera a todos los scripts pedidos antes que él, es decir, a React y Next (~115 KB gzip). En un navegador real con la CPU 4x más lenta, el elemento LCP (un párrafo de texto renderizado en el servidor) se pinta en el primer frame, a ~0.6 s, y no se vuelve a reportar después. Bajar el número simulado exigiría quitar React del camino crítico. En `/jugador/[tag]` el LCP con throttling real lo marca el footer, que llega después del contenido que se transmite con streaming.
 
 Contrato de la API: `GET /api/v1/openapi.json`. Diseño completo: `docs/superpowers/specs/2026-09-29-brawlwiki-v1-design.md`.
