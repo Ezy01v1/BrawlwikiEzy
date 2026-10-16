@@ -30,10 +30,28 @@ export async function CompareResult({ a, b }: { a: string; b: string }) {
       </>
     );
   }
+  // Si los dos fallan por la misma causa (Supercell caído, rate limit...), basta con un aviso.
+  if (!ra.ok && !rb.ok && ra.error.code === rb.error.code && ra.error.code !== 'NOT_FOUND') {
+    return (
+      <div className="mt-4">
+        <ApiErrorView error={ra.error} />
+      </div>
+    );
+  }
+  const sides = [
+    { label: 'Club A', tag: a, result: ra },
+    { label: 'Club B', tag: b, result: rb },
+  ];
   return (
     <div className="mt-4 space-y-3">
-      {!ra.ok && <SideError tag={a} error={ra.error} />}
-      {!rb.ok && <SideError tag={b} error={rb.error} />}
+      {sides.map(({ label, tag, result }) =>
+        result.ok ? null : (
+          <section key={label} aria-label={label}>
+            <h2 className="mb-1 text-sm font-semibold text-muted">{label}</h2>
+            <SideError tag={tag} error={result.error} />
+          </section>
+        ),
+      )}
     </div>
   );
 }

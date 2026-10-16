@@ -48,4 +48,15 @@ describe('rankings', () => {
     expect(getBrawlerRankings).toHaveBeenCalledWith(16000001, 'MX');
     expect(screen.getByRole('alert')).toHaveTextContent('Revisa los filtros');
   });
+
+  it('NOT_FOUND de una región o de un brawler se muestra como estado vacío, no como error', async () => {
+    getClubRankings.mockRejectedValue(new ApiError('NOT_FOUND', 'No existe', { status: 404 }));
+    const { unmount } = render(await RankingSection({ tipo: 'clubes', region: 'ZZ', brawler: null }));
+    expect(screen.getByText('No hay ranking para esta región')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    unmount();
+    getBrawlerRankings.mockRejectedValue(new ApiError('NOT_FOUND', 'No existe', { status: 404 }));
+    render(await RankingSection({ tipo: 'brawler', region: 'global', brawler: 99999999 }));
+    expect(screen.getByText('No encontramos ese ranking de brawler')).toBeInTheDocument();
+  });
 });

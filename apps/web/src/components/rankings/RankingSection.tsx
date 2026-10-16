@@ -14,10 +14,20 @@ function NoRanking({ region }: { region: string }) {
   );
 }
 
+function NoBrawlerRanking({ region }: { region: string }) {
+  return (
+    <EmptyState title="No encontramos ese ranking de brawler">
+      El brawler no existe o Supercell no tiene su ranking para {regionLabel(region)}. Elige otro brawler de la lista.
+    </EmptyState>
+  );
+}
+
 export async function RankingSection({ tipo, region, brawler }: RankingView) {
   if (tipo === 'clubes') {
     const r = await attempt(getClubRankings(region));
-    if (!r.ok) return <ApiErrorView error={r.error} />;
+    if (!r.ok) {
+      return r.error.code === 'NOT_FOUND' ? <NoRanking region={region} /> : <ApiErrorView error={r.error} />;
+    }
     if (r.value.data.length === 0) return <NoRanking region={region} />;
     return (
       <>
@@ -27,10 +37,12 @@ export async function RankingSection({ tipo, region, brawler }: RankingView) {
     );
   }
 
-  const r = await attempt(
-    tipo === 'brawler' && brawler ? getBrawlerRankings(brawler, region) : getPlayerRankings(region),
-  );
-  if (!r.ok) return <ApiErrorView error={r.error} />;
+  const byBrawler = tipo === 'brawler' && brawler !== null;
+  const r = await attempt(byBrawler ? getBrawlerRankings(brawler, region) : getPlayerRankings(region));
+  if (!r.ok) {
+    if (r.error.code !== 'NOT_FOUND') return <ApiErrorView error={r.error} />;
+    return byBrawler ? <NoBrawlerRanking region={region} /> : <NoRanking region={region} />;
+  }
   if (r.value.data.length === 0) return <NoRanking region={region} />;
   return (
     <>
