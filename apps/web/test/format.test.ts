@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { displayName, formatAge, formatNumber, signed, timeAgo, timeLeft } from '@/lib/format';
+import { displayName, formatAge, formatNumber, plural, signed, timeAgo, timeLeft } from '@/lib/format';
 
 const NOW = Date.parse('2026-09-29T12:00:00.000Z');
 
@@ -43,5 +43,13 @@ describe('format', () => {
     expect(displayName('EL PRIMO')).toBe('El Primo');
     expect(displayName('8-BIT')).toBe('8-Bit');
     expect(displayName('MR. P')).toBe('Mr. P');
+  });
+});
+
+describe('plural', () => {
+  it('usa el singular solo para 1', () => {
+    expect(plural(1, 'miembro', 'miembros')).toBe('1 miembro');
+    expect(plural(0, 'miembro', 'miembros')).toBe('0 miembros');
+    expect(plural(30, 'miembro', 'miembros')).toBe('30 miembros');
   });
 });

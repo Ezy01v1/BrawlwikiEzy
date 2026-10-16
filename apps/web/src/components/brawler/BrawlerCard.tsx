@@ -28,7 +28,7 @@ export function BrawlerCard({ name, imageUrl, color, label, href, children }: Br
   const body = (
     <>
       <div className="flex aspect-square items-end justify-center" style={{ background: tileBackground(color) }}>
-        <GameImage src={imageUrl} alt={name} size={96} fallbackText={name} className="h-[85%] w-auto object-contain" />
+        <GameImage src={imageUrl} alt="" size={96} fallbackText={name} className="h-[85%] w-auto object-contain" />
       </div>
       <div aria-hidden="true" className="h-[3px] bg-[var(--rarity)]" />
       <div className="space-y-1 px-2 py-1">{children}</div>

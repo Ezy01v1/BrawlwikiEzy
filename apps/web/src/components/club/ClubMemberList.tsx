@@ -21,7 +21,7 @@ export function ClubMemberList({ members }: { members: ClubMember[] }) {
               <span className="w-6 shrink-0 text-right text-sm tabular-nums text-muted">{i + 1}</span>
               <GameImage
                 src={m.icon.imageUrl}
-                alt={`Ícono de ${m.name}`}
+                alt=""
                 size={36}
                 fallbackText={m.name}
                 className="rounded-chip"

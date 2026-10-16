@@ -2,7 +2,7 @@ import type { ClubRanking, PlayerRanking } from '@brawlwiki/shared';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { GameImage } from '@/components/ui/GameImage';
-import { formatNumber } from '@/lib/format';
+import { formatNumber, plural } from '@/lib/format';
 import { RankBadge } from './RankBadge';
 
 export type LeaderboardProps = { kind: 'players'; items: PlayerRanking[] } | { kind: 'clubs'; items: ClubRanking[] };
@@ -69,7 +69,7 @@ export function LeaderboardList(props: LeaderboardProps) {
                 image={
                   <GameImage
                     src={p.icon.imageUrl}
-                    alt={`Ícono de ${p.name}`}
+                    alt=""
                     size={32}
                     fallbackText={p.name}
                     className="rounded-chip"
@@ -83,12 +83,12 @@ export function LeaderboardList(props: LeaderboardProps) {
                 rank={c.rank}
                 href={`/club/${c.tag}`}
                 name={c.name}
-                detail={`${c.memberCount} miembros`}
+                detail={plural(c.memberCount, 'miembro', 'miembros')}
                 trophies={c.trophies}
                 image={
                   <GameImage
                     src={c.badgeImageUrl}
-                    alt={`Escudo de ${c.name}`}
+                    alt=""
                     size={32}
                     fallbackText={c.name}
                     className="rounded-chip"

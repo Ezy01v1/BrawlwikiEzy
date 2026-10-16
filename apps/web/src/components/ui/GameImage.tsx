@@ -24,15 +24,14 @@ interface GameImageProps {
   fallbackText?: string;
 }
 
-/** Imagen del CDN con fallback: nunca se muestra un ícono roto. */
+/** Imagen del CDN con fallback: nunca se muestra un ícono roto. Con `alt=""` es decorativa. */
 export function GameImage({ src, alt, size, className = '', fallbackText }: GameImageProps) {
   const [failed, setFailed] = useState(false);
 
   if (!src || failed) {
     return (
       <span
-        role="img"
-        aria-label={alt}
+        {...(alt ? { role: 'img', 'aria-label': alt } : { 'aria-hidden': true })}
         style={{ width: size, height: size }}
         className={`inline-flex shrink-0 items-center justify-center rounded-chip bg-surface-2 font-display text-muted ${className}`}
       >

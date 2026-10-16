@@ -24,7 +24,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const theme = parseTheme((await cookies()).get(THEME_COOKIE)?.value);
   return (
     <html lang="es" data-theme={theme} className={`${lilita.variable} ${inter.variable}`}>
-      <body className="min-h-dvh font-sans antialiased">
+      <body className="flex min-h-dvh flex-col font-sans antialiased">
         <a
           href="#contenido"
           className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded-chip focus:bg-primary-fill focus:px-3 focus:py-2 focus:text-on-primary"
@@ -32,7 +32,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           Saltar al contenido
         </a>
         <Header theme={theme} />
-        <main id="contenido" className="mx-auto min-h-dvh w-full max-w-5xl px-4 md:px-6">
+        <main id="contenido" className="mx-auto w-full max-w-5xl flex-1 px-4 md:px-6">
           {children}
         </main>
         <Footer />

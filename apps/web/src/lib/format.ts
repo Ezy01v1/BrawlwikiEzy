@@ -39,3 +39,8 @@ export function signed(n: number): string {
 export function displayName(raw: string): string {
   return raw.toLowerCase().replace(/(^|[\s\-.])(\p{L})/gu, (_m, sep: string, ch: string) => sep + ch.toUpperCase());
 }
+
+/** "1 miembro", "2 miembros" (con separador de miles). */
+export function plural(n: number, singular: string, pluralForm: string): string {
+  return `${formatNumber(n)} ${n === 1 ? singular : pluralForm}`;
+}
