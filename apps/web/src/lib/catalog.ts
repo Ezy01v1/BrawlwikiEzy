@@ -92,3 +92,18 @@ export function parseBrawlerFilters(sp: Record<string, string | string[] | undef
   if (clase) out.clase = clase;
   return out;
 }
+
+/** URL canónica del catálogo: sin parámetros vacíos (el formulario GET manda `rareza=&clase=` con "Todas"). */
+export function brawlersHref(f: BrawlerFilters): string {
+  const q = new URLSearchParams();
+  if (f.q) q.set('q', f.q);
+  if (f.rareza) q.set('rareza', f.rareza);
+  if (f.clase) q.set('clase', f.clase);
+  const s = q.toString();
+  return s ? `/brawlers?${s}` : '/brawlers';
+}
+
+/** true si la URL trae parámetros de filtro vacíos que conviene limpiar. */
+export function hasEmptyFilterParams(sp: Record<string, string | string[] | undefined>, f: BrawlerFilters): boolean {
+  return (['q', 'rareza', 'clase'] as const).some((k) => k in sp && !f[k]);
+}

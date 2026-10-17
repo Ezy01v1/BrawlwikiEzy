@@ -1,13 +1,15 @@
 import { expect, expectAccessible, expectNoHorizontalScroll, test } from './fixtures';
 
-test('catálogo sin metadatos: 4 brawlers, sin selects de rareza ni clase, accesible y sin scroll a 375px', async ({
-  page,
-}) => {
+test('catálogo: 4 brawlers, filtro por rareza, accesible y sin scroll a 375px', async ({ page }) => {
   await page.goto('/brawlers');
   await expect(page.getByRole('heading', { level: 1, name: 'Brawlers' })).toBeVisible();
   await expect(page.getByText('Mostrando 4 de 4 brawlers')).toBeVisible();
-  await expect(page.getByText('La rareza y la clase todavía no están disponibles.')).toBeVisible();
-  await expect(page.getByLabel('Rareza')).toHaveCount(0);
+  await expect(page.getByText('La rareza y la clase todavía no están disponibles.')).toHaveCount(0);
+  await page.getByLabel('Rareza').selectOption('Common');
+  await page.getByRole('button', { name: 'Filtrar' }).click();
+  await expect(page).toHaveURL('/brawlers?rareza=Common');
+  await expect(page.getByText('Mostrando 1 de 4 brawlers')).toBeVisible();
+  await page.getByRole('link', { name: 'Quitar filtros' }).click();
   await expect(page.getByRole('link', { name: 'Shelly' })).toHaveAttribute('href', '/brawlers/16000000');
   await expectAccessible(page);
   await page.setViewportSize({ width: 375, height: 800 });

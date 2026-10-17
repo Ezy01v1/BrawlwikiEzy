@@ -35,10 +35,10 @@ La web solo habla con la API desde el servidor de Next (`API_INTERNAL_URL`, por 
 | `npm test` | Tests unitarios de todos los paquetes |
 | `npm run typecheck` | Chequeo de tipos |
 | `npm run e2e` | Playwright + axe. Levanta su propia API con fixtures (:4100) y un build de producción de la web (:3100). La primera vez: `npx playwright install chromium` |
-| `npm run meta:import -w @brawlwiki/api -- <ruta absoluta a brawlers.json>` | Actualiza rareza y clase de los brawlers. El JSON se descarga desde el navegador en https://api.brawlify.com/v1/brawlers |
+| `npm run meta:import -w @brawlwiki/api -- <ruta absoluta a brawlers.json>` | Actualiza rareza y clase de los brawlers. El JSON se descarga desde el navegador en https://api.brawlapi.com/v1/brawlers |
 
 - `npm run e2e` deja en `apps/web/.next` un build con `NEXT_PUBLIC_SITE_URL=http://localhost:3100`; antes de desplegar, correr `npm run build -w @brawlwiki/web` con las variables de producción.
-- Mientras no se corra `meta:import`, la API no tiene rareza ni clase: el catálogo oculta esos filtros y el detalle muestra "Sin dato".
+- Los metadatos se importaron el 2026-10-16 (109 brawlers). Los brawlers nuevos no tendrán rareza ni clase hasta volver a correr `meta:import`.
 
 ## Páginas
 

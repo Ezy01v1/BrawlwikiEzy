@@ -4,8 +4,10 @@ import { BrawlerFiltersForm } from '@/components/brawler/BrawlerFiltersForm';
 import { CatalogTile } from '@/components/brawler/CatalogTile';
 import {
   brawlerFacets,
+  brawlersHref,
   classLabel,
   filterBrawlers,
+  hasEmptyFilterParams,
   parseBrawlerFilters,
   rarityLabel,
 } from '@/lib/catalog';
@@ -76,5 +78,20 @@ describe('componentes del catálogo', () => {
     expect(screen.getByRole('option', { name: 'Raro' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Tanque' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Quitar filtros' })).toHaveAttribute('href', '/brawlers');
+  });
+});
+
+describe('URL canónica del catálogo', () => {
+  it('quita los parámetros vacíos que manda el formulario', () => {
+    const sp = { q: 'bú', rareza: '', clase: '' };
+    const f = parseBrawlerFilters(sp);
+    expect(hasEmptyFilterParams(sp, f)).toBe(true);
+    expect(brawlersHref(f)).toBe('/brawlers?q=b%C3%BA');
+  });
+
+  it('no redirige si la URL ya es canónica', () => {
+    const sp = { rareza: 'Common' };
+    expect(hasEmptyFilterParams(sp, parseBrawlerFilters(sp))).toBe(false);
+    expect(brawlersHref({})).toBe('/brawlers');
   });
 });

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { BrawlerFiltersForm } from '@/components/brawler/BrawlerFiltersForm';
 import { CatalogTile } from '@/components/brawler/CatalogTile';
 import { ApiErrorView } from '@/components/states/ApiErrorView';
@@ -7,7 +8,7 @@ import { EmptyState } from '@/components/states/EmptyState';
 import { StaleBadge } from '@/components/states/StaleBadge';
 import { attempt } from '@/lib/attempt';
 import { sortByDisplayName } from '@/lib/brawlers';
-import { brawlerFacets, filterBrawlers, parseBrawlerFilters } from '@/lib/catalog';
+import { brawlerFacets, brawlersHref, filterBrawlers, hasEmptyFilterParams, parseBrawlerFilters } from '@/lib/catalog';
 import { getBrawlers } from '@/lib/queries';
 
 export const metadata: Metadata = {
@@ -16,7 +17,9 @@ export const metadata: Metadata = {
 };
 
 export default async function BrawlersPage({ searchParams }: PageProps<'/brawlers'>) {
-  const values = parseBrawlerFilters(await searchParams);
+  const sp = await searchParams;
+  const values = parseBrawlerFilters(sp);
+  if (hasEmptyFilterParams(sp, values)) redirect(brawlersHref(values));
   const r = await attempt(getBrawlers());
   if (!r.ok) {
     return (

@@ -1,1 +1,765 @@
-{}
+{
+  "16000000": {
+    "rarity": {
+      "name": "Common",
+      "color": "#b9eaff"
+    },
+    "class": "Damage Dealer"
+  },
+  "16000001": {
+    "rarity": {
+      "name": "Rare",
+      "color": "#68fd58"
+    },
+    "class": "Damage Dealer"
+  },
+  "16000002": {
+    "rarity": {
+      "name": "Rare",
+      "color": "#68fd58"
+    },
+    "class": "Tank"
+  },
+  "16000003": {
+    "rarity": {
+      "name": "Rare",
+      "color": "#68fd58"
+    },
+    "class": "Marksman"
+  },
+  "16000004": {
+    "rarity": {
+      "name": "Super Rare",
+      "color": "#5ab3ff"
+    },
+    "class": "Damage Dealer"
+  },
+  "16000005": {
+    "rarity": {
+      "name": "Legendary",
+      "color": "#fff11e"
+    },
+    "class": "Damage Dealer"
+  },
+  "16000006": {
+    "rarity": {
+      "name": "Rare",
+      "color": "#68fd58"
+    },
+    "class": "Artillery"
+  },
+  "16000007": {
+    "rarity": {
+      "name": "Super Rare",
+      "color": "#5ab3ff"
+    },
+    "class": "Controller"
+  },
+  "16000008": {
+    "rarity": {
+      "name": "Rare",
+      "color": "#68fd58"
+    },
+    "class": "Damage Dealer"
+  },
+  "16000009": {
+    "rarity": {
+      "name": "Super Rare",
+      "color": "#5ab3ff"
+    },
+    "class": "Artillery"
+  },
+  "16000010": {
+    "rarity": {
+      "name": "Rare",
+      "color": "#68fd58"
+    },
+    "class": "Tank"
+  },
+  "16000011": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Assassin"
+  },
+  "16000012": {
+    "rarity": {
+      "name": "Legendary",
+      "color": "#fff11e"
+    },
+    "class": "Assassin"
+  },
+  "16000013": {
+    "rarity": {
+      "name": "Rare",
+      "color": "#68fd58"
+    },
+    "class": "Support"
+  },
+  "16000014": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Controller"
+  },
+  "16000015": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Marksman"
+  },
+  "16000016": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Support"
+  },
+  "16000017": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Damage Dealer"
+  },
+  "16000018": {
+    "rarity": {
+      "name": "Super Rare",
+      "color": "#5ab3ff"
+    },
+    "class": "Tank"
+  },
+  "16000019": {
+    "rarity": {
+      "name": "Super Rare",
+      "color": "#5ab3ff"
+    },
+    "class": "Controller"
+  },
+  "16000020": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Tank"
+  },
+  "16000021": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Controller"
+  },
+  "16000022": {
+    "rarity": {
+      "name": "Super Rare",
+      "color": "#5ab3ff"
+    },
+    "class": "Artillery"
+  },
+  "16000023": {
+    "rarity": {
+      "name": "Legendary",
+      "color": "#fff11e"
+    },
+    "class": "Assassin"
+  },
+  "16000024": {
+    "rarity": {
+      "name": "Rare",
+      "color": "#68fd58"
+    },
+    "class": "Tank"
+  },
+  "16000025": {
+    "rarity": {
+      "name": "Super Rare",
+      "color": "#5ab3ff"
+    },
+    "class": "Damage Dealer"
+  },
+  "16000026": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Tank"
+  },
+  "16000027": {
+    "rarity": {
+      "name": "Super Rare",
+      "color": "#5ab3ff"
+    },
+    "class": "Damage Dealer"
+  },
+  "16000028": {
+    "rarity": {
+      "name": "Legendary",
+      "color": "#fff11e"
+    },
+    "class": "Controller"
+  },
+  "16000029": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Marksman"
+  },
+  "16000030": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Controller"
+  },
+  "16000031": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Controller"
+  },
+  "16000032": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Support"
+  },
+  "16000034": {
+    "rarity": {
+      "name": "Super Rare",
+      "color": "#5ab3ff"
+    },
+    "class": "Tank"
+  },
+  "16000035": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Controller"
+  },
+  "16000036": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Marksman"
+  },
+  "16000037": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Artillery"
+  },
+  "16000038": {
+    "rarity": {
+      "name": "Legendary",
+      "color": "#fff11e"
+    },
+    "class": "Damage Dealer"
+  },
+  "16000039": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Damage Dealer"
+  },
+  "16000040": {
+    "rarity": {
+      "name": "Legendary",
+      "color": "#fff11e"
+    },
+    "class": "Controller"
+  },
+  "16000041": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Controller"
+  },
+  "16000042": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Support"
+  },
+  "16000043": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Assassin"
+  },
+  "16000044": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Support"
+  },
+  "16000045": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Assassin"
+  },
+  "16000046": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Marksman"
+  },
+  "16000047": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Controller"
+  },
+  "16000048": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Artillery"
+  },
+  "16000049": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Assassin"
+  },
+  "16000050": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Controller"
+  },
+  "16000051": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Tank"
+  },
+  "16000052": {
+    "rarity": {
+      "name": "Legendary",
+      "color": "#fff11e"
+    },
+    "class": "Tank"
+  },
+  "16000053": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Damage Dealer"
+  },
+  "16000054": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Assassin"
+  },
+  "16000056": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Damage Dealer"
+  },
+  "16000057": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Marksman"
+  },
+  "16000058": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Marksman"
+  },
+  "16000059": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Controller"
+  },
+  "16000060": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Assassin"
+  },
+  "16000061": {
+    "rarity": {
+      "name": "Super Rare",
+      "color": "#5ab3ff"
+    },
+    "class": "Support"
+  },
+  "16000062": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Tank"
+  },
+  "16000063": {
+    "rarity": {
+      "name": "Legendary",
+      "color": "#fff11e"
+    },
+    "class": "Damage Dealer"
+  },
+  "16000064": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Support"
+  },
+  "16000065": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Marksman"
+  },
+  "16000066": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Damage Dealer"
+  },
+  "16000067": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Controller"
+  },
+  "16000068": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Marksman"
+  },
+  "16000069": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Tank"
+  },
+  "16000070": {
+    "rarity": {
+      "name": "Legendary",
+      "color": "#fff11e"
+    },
+    "class": "Assassin"
+  },
+  "16000071": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Support"
+  },
+  "16000072": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Damage Dealer"
+  },
+  "16000073": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Controller"
+  },
+  "16000074": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Controller"
+  },
+  "16000075": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Assassin"
+  },
+  "16000076": {
+    "rarity": {
+      "name": "Legendary",
+      "color": "#fff11e"
+    },
+    "class": "Support"
+  },
+  "16000077": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Artillery"
+  },
+  "16000078": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Assassin"
+  },
+  "16000079": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Marksman"
+  },
+  "16000080": {
+    "rarity": {
+      "name": "Legendary",
+      "color": "#fff11e"
+    },
+    "class": "Tank"
+  },
+  "16000081": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Assassin"
+  },
+  "16000082": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Support"
+  },
+  "16000083": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Damage Dealer"
+  },
+  "16000084": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Damage Dealer"
+  },
+  "16000085": {
+    "rarity": {
+      "name": "Legendary",
+      "color": "#fff11e"
+    },
+    "class": "Assassin"
+  },
+  "16000086": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Assassin"
+  },
+  "16000087": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Artillery"
+  },
+  "16000088": {
+    "rarity": {
+      "name": "Legendary",
+      "color": "#fff11e"
+    },
+    "class": "Damage Dealer"
+  },
+  "16000089": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Controller"
+  },
+  "16000090": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Tank"
+  },
+  "16000091": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Damage Dealer"
+  },
+  "16000092": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Controller"
+  },
+  "16000093": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Support"
+  },
+  "16000094": {
+    "rarity": {
+      "name": "Ultra Legendary",
+      "color": "#e1fb2a"
+    },
+    "class": "Assassin"
+  },
+  "16000095": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Assassin"
+  },
+  "16000096": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Tank"
+  },
+  "16000097": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Damage Dealer"
+  },
+  "16000098": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Controller"
+  },
+  "16000099": {
+    "rarity": {
+      "name": "Legendary",
+      "color": "#fff11e"
+    },
+    "class": "Marksman"
+  },
+  "16000100": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Assassin"
+  },
+  "16000101": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Support"
+  },
+  "16000102": {
+    "rarity": {
+      "name": "Ultra Legendary",
+      "color": "#e1fb2a"
+    },
+    "class": "Controller"
+  },
+  "16000103": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Damage Dealer"
+  },
+  "16000104": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Tank"
+  },
+  "16000105": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Assassin"
+  },
+  "16000106": {
+    "rarity": {
+      "name": "Epic",
+      "color": "#d850ff"
+    },
+    "class": "Tank"
+  },
+  "16000107": {
+    "rarity": {
+      "name": "Legendary",
+      "color": "#fff11e"
+    },
+    "class": "Assassin"
+  },
+  "16000108": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Support"
+  },
+  "16000109": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Controller"
+  },
+  "16000110": {
+    "rarity": {
+      "name": "Mythic",
+      "color": "#fe5e72"
+    },
+    "class": "Damage Dealer"
+  }
+}
