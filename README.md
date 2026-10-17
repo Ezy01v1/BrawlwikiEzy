@@ -66,4 +66,6 @@ Medido el 2026-10-15, dos corridas por página. "Simulado" es el modo por defect
 
 El LCP simulado queda unas décimas por encima de 2.5 s y es un artefacto del simulador: Lantern supone que el LCP espera a todos los scripts pedidos antes que él, es decir, a React y Next (~115 KB gzip). En un navegador real con la CPU 4x más lenta, el elemento LCP (un párrafo de texto renderizado en el servidor) se pinta en el primer frame, a ~0.6 s, y no se vuelve a reportar después. Bajar el número simulado exigiría quitar React del camino crítico. En `/jugador/[tag]` el LCP con throttling real lo marca el footer, que llega después del contenido que se transmite con streaming.
 
+Deploy en un VPS (PM2 + Nginx): [`deploy/README.md`](deploy/README.md).
+
 Contrato de la API: `GET /api/v1/openapi.json`. Diseño completo: `docs/superpowers/specs/2026-09-29-brawlwiki-v1-design.md`.
