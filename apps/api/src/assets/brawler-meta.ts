@@ -25,7 +25,7 @@ interface BrawlifyBrawler {
   class?: { name?: string } | null;
 }
 
-/** Convierte el JSON de https://api.brawlify.com/v1/brawlers (descargado desde el navegador) a nuestro mapa. */
+/** Convierte el JSON de https://api.brawlapi.com/v1/brawlers (la API pública de Brawlify) a nuestro mapa. */
 export function convertBrawlifyBrawlers(json: unknown): BrawlerMetaMap {
   const list = (json as { list?: unknown } | null)?.list;
   if (!Array.isArray(list)) {
