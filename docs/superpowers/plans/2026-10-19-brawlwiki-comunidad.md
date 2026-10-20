@@ -215,7 +215,7 @@
 - Produces: Server Actions `linkTag(tag: string|null)`, `logout()`, `deleteAccount(confirm: string)` (exige exactamente `"BORRAR"`).
 - Menú inferior: `{ href: '/tierlist', label: 'Tier list', icon: '📊' }` en lugar de Clubes; Clubes como link de texto en el header. `LoginNotice` lee `?login=error` y muestra "No se pudo iniciar sesión con Discord".
 
-- [ ] **Step 1: Tests** — header sin sesión muestra "Entrar" con href `/auth/discord?next=<ruta>`; con sesión muestra el avatar con link a `/cuenta`; con `playerTag` muestra "Mi perfil" → `/jugador/<tag>`; con `getSession()` → `{ enabled: false }` no muestra "Entrar" ni "Tier list" pasa a 404 (el ítem del menú se mantiene; la página muestra el estado de Comunidad no disponible); `DeleteAccountForm` deshabilita el botón hasta escribir "BORRAR"; `ClaimTagButton` solo aparece con sesión y si el tag no es ya el vinculado.
+- [ ] **Step 1: Tests** — header sin sesión muestra "Entrar" con href `/auth/discord?next=<ruta>`; con sesión muestra el avatar con link a `/cuenta`; con `playerTag` muestra "Mi perfil" → `/jugador/<tag>`; con `getSession()` → `{ enabled: false }` no muestra "Entrar" (el ítem "Tier list" del menú se mantiene y la página muestra que Comunidad no está disponible); `DeleteAccountForm` deshabilita el botón hasta escribir "BORRAR"; `ClaimTagButton` solo aparece con sesión y si el tag no es ya el vinculado.
 - [ ] **Step 2–4:** FAIL → implementar → PASS (`/cuenta` sin sesión → `redirect('/auth/discord?next=/cuenta')`).
 - [ ] **Step 5:** Commit `feat(web): login en el header, página de cuenta y "Este soy yo"`.
 
