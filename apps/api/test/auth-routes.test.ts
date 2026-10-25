@@ -83,7 +83,7 @@ function setCookieHeader(res: request.Response, name: string): string | undefine
 }
 function cookieValue(res: request.Response, name: string): string | undefined {
   const c = setCookieHeader(res, name);
-  return c ? decodeURIComponent(c.split(';')[0].slice(name.length + 1)) : undefined;
+  return c ? decodeURIComponent((c.split(';')[0] ?? '').slice(name.length + 1)) : undefined;
 }
 
 type App = ReturnType<typeof fakeDeps>['app'];
@@ -120,11 +120,11 @@ describe('createDiscordClient', () => {
     const { impl, calls } = fakeFetch();
     const c = createDiscordClient({ clientId: 'cid', clientSecret: 's', redirectUri: 'r', fetchImpl: impl });
     expect(await c.exchange('code1')).toEqual({ id: '777', username: 'ana', globalName: 'Ana', avatar: 'abc' });
-    expect(calls[0].url).toBe('https://discord.com/api/oauth2/token');
-    expect(calls[0].init?.method).toBe('POST');
-    expect(String(calls[0].init?.body)).toContain('code=code1');
-    expect(calls[1].url).toBe('https://discord.com/api/users/@me');
-    expect((calls[1].init?.headers as Record<string, string>).Authorization).toBe('Bearer tok');
+    expect(calls[0]?.url).toBe('https://discord.com/api/oauth2/token');
+    expect(calls[0]?.init?.method).toBe('POST');
+    expect(String(calls[0]?.init?.body)).toContain('code=code1');
+    expect(calls[1]?.url).toBe('https://discord.com/api/users/@me');
+    expect((calls[1]?.init?.headers as Record<string, string>).Authorization).toBe('Bearer tok');
   });
 
   it('exchange falla si Discord rechaza el código', async () => {
@@ -143,7 +143,7 @@ describe('rutas /auth', () => {
     const { app } = fakeDeps();
     const { res, state, next } = await startLogin(app);
     expect(res.status).toBe(302);
-    const loc = new URL(res.headers.location);
+    const loc = new URL(String(res.headers.location));
     expect(loc.origin + loc.pathname).toBe('https://discord.com/oauth2/authorize');
     expect(loc.searchParams.get('scope')).toBe('identify');
     expect(loc.searchParams.get('redirect_uri')).toBe(`${SITE}/auth/discord/callback`);
@@ -247,11 +247,11 @@ describe.skipIf(!testDb)('con MySQL', () => {
     expect(b).toBe(a);
     const rows = await db.select().from(users).where(eq(users.discordId, '777'));
     expect(rows).toHaveLength(1);
-    expect(rows[0].username).toBe('ana2');
-    expect(rows[0].avatarUrl).toBeNull();
+    expect(rows[0]?.username).toBe('ana2');
+    expect(rows[0]?.avatarUrl).toBeNull();
     await upsertDiscordUser(db, { id: '778', username: 'x', globalName: null, avatar: 'h' });
     const [r] = await db.select().from(users).where(eq(users.discordId, '778'));
-    expect(r.avatarUrl).toBe('https://cdn.discordapp.com/avatars/778/h.png');
+    expect(r?.avatarUrl).toBe('https://cdn.discordapp.com/avatars/778/h.png');
   });
 
   it('login mock + logout crean y borran la fila de sesión', async () => {
