@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1792907887458,
+      "tag": "0000_furry_the_santerians",
+      "breakpoints": true
+    }
+  ]
+}

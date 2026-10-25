@@ -4,6 +4,7 @@ import { createCachedFetch } from './cache/cached-fetch';
 import { createMemoryCache } from './cache/memory';
 import { createRedisCache } from './cache/redis';
 import { loadConfig } from './config';
+import { createDb } from './db/client';
 import { createHealth } from './health';
 import { createLogger } from './logger';
 import { createServices } from './services';
@@ -37,12 +38,17 @@ const cache = redis ?? createMemoryCache();
 const supercell = config.supercellMock
   ? createFixtureClient()
   : createSupercellClient({ apiKey: config.supercellApiKey!, baseUrl: config.supercellApiBase, logger });
+// Las migraciones no se corren al arrancar: son un paso de deploy (`npm run db:migrate`).
+const database = config.databaseUrl ? createDb(config.databaseUrl) : null;
+if (database && !(await database.ping())) {
+  logger.warn('MySQL no responde; la API sigue sin Comunidad hasta que vuelva');
+}
 const { cachedFetch, isCoolingDown } = createCachedFetch({ cache, logger });
 
 const app = createApp({
   logger,
   services: createServices({ supercell, cachedFetch }),
-  health: createHealth({ cache, supercell, isCoolingDown }),
+  health: createHealth({ cache, supercell, isCoolingDown, ...(database ? { db: database } : {}) }),
   rateLimit: {
     generalPerMinute: 60,
     upstreamPerMinute: 20,
@@ -65,7 +71,12 @@ const server = app.listen(config.port, config.host, (err?: Error) => {
     return;
   }
   logger.info(
-    { url: `http://${config.host}:${config.port}/api/v1`, cache: cache.kind, supercell: supercell.mode },
+    {
+      url: `http://${config.host}:${config.port}/api/v1`,
+      cache: cache.kind,
+      supercell: supercell.mode,
+      db: database ? 'mysql' : 'disabled',
+    },
     'BrawlWiki API lista',
   );
 });
@@ -73,6 +84,7 @@ const server = app.listen(config.port, config.host, (err?: Error) => {
 function shutdown() {
   server.close(() => {
     redis?.quit().catch(() => {});
+    database?.close().catch(() => {});
   });
   setTimeout(() => process.exit(0), 5000).unref();
 }
