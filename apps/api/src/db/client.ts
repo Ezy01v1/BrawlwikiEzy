@@ -6,7 +6,12 @@ import * as schema from './schema';
 export type Db = MySql2Database<typeof schema>;
 
 export function createDb(url: string): { db: Db; ping(): Promise<boolean>; close(): Promise<void> } {
-  const pool = mysql.createPool({ uri: url, connectionLimit: 10 });
+  const pool = mysql.createPool({
+    uri: url,
+    connectionLimit: 10,
+    // DATETIME se lee y escribe como UTC; la expiración de sesiones depende de esto.
+    timezone: 'Z',
+  });
   const db = drizzle(pool, { schema, mode: 'default' });
   return {
     db,

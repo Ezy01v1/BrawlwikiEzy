@@ -3,7 +3,10 @@ import express, { type Express, type Request } from 'express';
 import { ipKeyGenerator, type Store } from 'express-rate-limit';
 import helmet from 'helmet';
 import { pinoHttp } from 'pino-http';
+import { type CommunityDeps, createCommunityRouter } from './community/router';
+import { loadUser } from './http/auth';
 import { errorHandler, notFoundHandler } from './http/error-handler';
+import { checkOrigin } from './http/origin';
 import { createGeneralLimiter, createUpstreamGuard } from './http/rate-limit';
 import { requestId } from './http/request-id';
 import { sendData } from './http/respond';
@@ -11,12 +14,14 @@ import type { Logger } from './logger';
 import { buildOpenApiDocument } from './openapi';
 import { createV1Router } from './routes/v1';
 import type { RequestContext, Services } from './services';
+import './types';
 
 export interface AppDeps {
   logger: Logger;
   health: () => Health | Promise<Health>;
   services?: Services;
   contextFor?: (req: Request) => RequestContext;
+  community?: CommunityDeps;
   rateLimit?: { generalPerMinute: number; upstreamPerMinute: number; store?: Store };
 }
 
@@ -43,6 +48,14 @@ export function createApp(deps: AppDeps): Express {
     res.json(buildOpenApiDocument());
   });
   if (deps.services) app.use('/api/v1', createV1Router(deps.services, contextFor));
+  if (deps.community) {
+    // Montado después de la v1: las rutas públicas no pasan por sesión ni chequeo de Origin.
+    const { config, sessions } = deps.community;
+    const community = express.Router();
+    community.use(checkOrigin(config.publicSiteUrl), loadUser(sessions, config.adminDiscordIds));
+    community.use(createCommunityRouter(deps.community));
+    app.use('/api/v1', community);
+  }
 
   app.use(notFoundHandler());
   app.use(errorHandler(deps.logger));
