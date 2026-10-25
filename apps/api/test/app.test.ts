@@ -11,17 +11,17 @@ const logger = createLogger('silent');
 
 describe('app base', () => {
   it('GET /api/v1/health responde con envoltorio y headers', async () => {
-    const app = createApp({ logger, health: () => ({ status: 'ok', cache: 'memory', supercell: 'mock' }) });
+    const app = createApp({ logger, health: () => ({ status: 'ok', cache: 'memory', supercell: 'mock', db: 'disabled' }) });
     const res = await request(app).get('/api/v1/health');
     expect(res.status).toBe(200);
-    expect(res.body.data).toEqual({ status: 'ok', cache: 'memory', supercell: 'mock' });
+    expect(res.body.data).toEqual({ status: 'ok', cache: 'memory', supercell: 'mock', db: 'disabled' });
     expect(res.body.meta.source).toBe('fresh');
     expect(res.headers['x-request-id']).toMatch(/^[0-9a-f-]{36}$/);
     expect(res.headers['x-cache-status']).toBe('MISS');
   });
 
   it('ruta desconocida → 404 NOT_FOUND con requestId del header', async () => {
-    const app = createApp({ logger, health: () => ({ status: 'ok', cache: 'memory', supercell: 'ok' }) });
+    const app = createApp({ logger, health: () => ({ status: 'ok', cache: 'memory', supercell: 'ok', db: 'disabled' }) });
     const res = await request(app).get('/api/v1/nada');
     expect(res.status).toBe(404);
     expect(res.body.error.code).toBe('NOT_FOUND');

@@ -12,5 +12,5 @@ export function createHealth(deps: {
     if (deps.supercell.isAuthRejected?.()) return 'unauthorized';
     return (await deps.isCoolingDown()) ? 'cooldown' : 'ok';
   }
-  return async () => ({ status: 'ok', cache: deps.cache.kind, supercell: await supercellStatus() });
+  return async () => ({ status: 'ok', cache: deps.cache.kind, supercell: await supercellStatus(), db: 'disabled' });
 }
