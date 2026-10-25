@@ -72,3 +72,11 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     nodeEnv: e.NODE_ENV,
   };
 }
+
+/** discord_id del usuario de AUTH_MOCK. */
+export const MOCK_DISCORD_ID = 'mock-1';
+
+/** Admins efectivos: ADMIN_DISCORD_IDS más el usuario mock si AUTH_MOCK=1 y AUTH_MOCK_ADMIN=1. */
+export function effectiveAdminIds(config: Pick<Config, 'adminDiscordIds' | 'authMock' | 'authMockAdmin'>): string[] {
+  return config.authMock && config.authMockAdmin ? [...config.adminDiscordIds, MOCK_DISCORD_ID] : config.adminDiscordIds;
+}

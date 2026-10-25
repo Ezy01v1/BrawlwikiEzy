@@ -4,6 +4,7 @@ import { ipKeyGenerator, type Store } from 'express-rate-limit';
 import helmet from 'helmet';
 import { pinoHttp } from 'pino-http';
 import { type CommunityDeps, createCommunityRouter } from './community/router';
+import { effectiveAdminIds } from './config';
 import { loadUser } from './http/auth';
 import { errorHandler, notFoundHandler } from './http/error-handler';
 import { checkOrigin } from './http/origin';
@@ -52,7 +53,7 @@ export function createApp(deps: AppDeps): Express {
     // Montado después de la v1: las rutas públicas no pasan por sesión ni chequeo de Origin.
     const { config, sessions } = deps.community;
     const community = express.Router();
-    community.use(checkOrigin(config.publicSiteUrl), loadUser(sessions, config.adminDiscordIds));
+    community.use(checkOrigin(config.publicSiteUrl), loadUser(sessions, effectiveAdminIds(config)));
     community.use(createCommunityRouter(deps.community));
     app.use('/api/v1', community);
   }
