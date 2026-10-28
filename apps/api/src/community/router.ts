@@ -19,7 +19,6 @@ export interface AccountStore {
 export interface FavoriteStore {
   /** Más recientes primero. */
   list(userId: number): Promise<Favorite[]>;
-  get(userId: number, kind: Favorite['kind'], tag: string): Promise<Favorite | null>;
   /** INSERT IGNORE: si ya existe, no hace nada (no pisa el nombre). */
   add(userId: number, item: { kind: Favorite['kind']; tag: string; name: string }): Promise<void>;
   /** Idempotente: borrar algo que no existe no es un error. */

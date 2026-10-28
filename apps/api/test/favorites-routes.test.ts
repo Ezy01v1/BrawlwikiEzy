@@ -31,10 +31,6 @@ function memoryStore(rows: Row[]): FavoriteStore {
       if (has(userId, item.kind, item.tag)) return;
       rows.push({ userId, ...item, createdAt: new Date((clock += 1000)) });
     },
-    async get(userId, kind, tag) {
-      const r = rows.find((x) => x.userId === userId && x.kind === kind && x.tag === tag);
-      return r ? { kind: r.kind, tag: r.tag, name: r.name, createdAt: r.createdAt.toISOString() } : null;
-    },
     async remove(userId, kind, tag) {
       const i = rows.findIndex((r) => r.userId === userId && r.kind === kind && r.tag === tag);
       if (i >= 0) rows.splice(i, 1);
@@ -122,13 +118,15 @@ describe('PUT /me/favorites/:kind/:tag', () => {
   it('guarda normalizado y es idempotente: dos PUT → una fila, nombre original', async () => {
     const { app, rows } = fakeApp();
     const a = await put(app, 'player/%232pp', { name: 'Primero' });
-    expect(a.status).toBe(200);
-    expect(a.body.data.favorite).toMatchObject({ kind: 'player', tag: '2PP', name: 'Primero' });
+    expect(a.status).toBe(204);
+    expect(a.text).toBe('');
     const b = await put(app, 'player/2PP', { name: 'Otro' });
-    expect(b.status).toBe(200);
+    expect(b.status).toBe(204);
+    expect(b.text).toBe('');
     expect(rows).toHaveLength(1);
     expect(rows[0]?.name).toBe('Primero');
-    expect(b.body.data.favorite.name).toBe('Primero');
+    const l = await list(app);
+    expect(l.body.data.favorites).toMatchObject([{ kind: 'player', tag: '2PP', name: 'Primero' }]);
   });
 
   it('kind inválido → 400 INVALID_PARAM; tag inválido → 400 INVALID_TAG', async () => {
@@ -154,7 +152,7 @@ describe('PUT /me/favorites/:kind/:tag', () => {
 
   it('nombre de 64 caracteres vale', async () => {
     const { app } = fakeApp();
-    expect((await put(app, 'player/2PP', { name: 'x'.repeat(64) })).status).toBe(200);
+    expect((await put(app, 'player/2PP', { name: 'x'.repeat(64) })).status).toBe(204);
   });
 
   it('sin sesión → 401; sin Origin → 403', async () => {
@@ -313,8 +311,8 @@ describe.skipIf(!testDb)('con MySQL', () => {
     const other = await seedUser(db, 'd2');
     const c = `bw_session=${await store.create(id)}`;
     const base = '/api/v1/me/favorites';
-    await request(app).put(`${base}/player/2PP`).set('Origin', origin).set('Cookie', c).send({ name: 'Uno' }).expect(200);
-    await request(app).put(`${base}/player/2PP`).set('Origin', origin).set('Cookie', c).send({ name: 'Dos' }).expect(200);
+    await request(app).put(`${base}/player/2PP`).set('Origin', origin).set('Cookie', c).send({ name: 'Uno' }).expect(204);
+    await request(app).put(`${base}/player/2PP`).set('Origin', origin).set('Cookie', c).send({ name: 'Dos' }).expect(204);
     await db.insert(favorites).values({ userId: other, kind: 'player', tag: '2PP', name: 'Ajeno' });
     const rows = await db.select().from(favorites).where(eq(favorites.userId, id));
     expect(rows).toHaveLength(1);

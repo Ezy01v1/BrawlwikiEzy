@@ -30,10 +30,6 @@ export function createFavoriteStore(db: Db): FavoriteStore {
       );
       return rows.map(toFavorite);
     },
-    async get(userId, kind, tag) {
-      const [row] = await dbCall(() => db.select().from(favorites).where(key(userId, kind, tag)).limit(1));
-      return row ? toFavorite(row) : null;
-    },
     async add(userId, item) {
       await dbCall(() => db.insert(favorites).ignore().values({ userId, ...item }));
     },
@@ -65,8 +61,8 @@ function jsonBody(limit: string): RequestHandler {
   const parser = express.json({ limit });
   return (req, res, next) =>
     parser(req, res, (err?: unknown) => {
-      const status = (err as { status?: unknown } | null | undefined)?.status;
-      next(status === 413 ? new AppError('INVALID_PARAM', 'Cuerpo demasiado grande.') : err);
+      const type = (err as { type?: unknown } | null | undefined)?.type;
+      next(type === 'entity.too.large' ? new AppError('INVALID_PARAM', 'Cuerpo demasiado grande.') : err);
     });
 }
 
@@ -113,12 +109,8 @@ export function createFavoritesRouter(deps: CommunityDeps): Router {
     const tag = parseTagParam(req.params.tag);
     const body = PutBodySchema.safeParse(req.body);
     if (!body.success) throw new AppError('INVALID_PARAM', 'Cuerpo inválido. Envía { "name": "1 a 64 caracteres" }.');
-    const userId = userIdOf(req);
-    await store.add(userId, { kind, tag, name: body.data.name });
-    const favorite = await store.get(userId, kind, tag);
-    if (!favorite) throw new AppError('DB_UNAVAILABLE');
-    res.setHeader('Cache-Control', 'no-store');
-    sendData(res, { data: { favorite }, source: 'fresh', fetchedAt: Date.now() });
+    await store.add(userIdOf(req), { kind, tag, name: body.data.name });
+    res.status(204).end();
   });
 
   router.delete('/:kind/:tag', async (req, res) => {
