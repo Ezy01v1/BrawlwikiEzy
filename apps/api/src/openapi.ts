@@ -41,7 +41,7 @@ const ERROR_DESCRIPTIONS: Record<number, string> = {
   404: 'No encontrado (NOT_FOUND)',
   409: 'No hay una temporada activa (NO_ACTIVE_SEASON)',
   429: 'Demasiadas solicitudes (RATE_LIMITED)',
-  503: 'Comunidad no disponible: MySQL caído o sin configurar (DB_UNAVAILABLE)',
+  503: 'Comunidad no disponible: MySQL caído (DB_UNAVAILABLE). Sin DATABASE_URL las rutas de Comunidad no existen y se obtiene el 404 genérico',
 };
 
 /** Respuestas de error con el mismo cuerpo que el `default` de la v1. */
@@ -57,7 +57,7 @@ function errorResponses(...statuses: number[]) {
   );
 }
 
-/** Rutas de Comunidad (cuentas, favoritos y tier list). Se documentan siempre, haya o no base de datos. */
+/** Rutas de Comunidad (cuentas, favoritos y tier list). El documento las incluye siempre; la API solo las monta con DATABASE_URL. */
 function registerCommunityPaths(registry: OpenAPIRegistry) {
   registry.registerComponent('securitySchemes', 'cookieAuth', {
     type: 'apiKey',
@@ -87,8 +87,17 @@ function registerCommunityPaths(registry: OpenAPIRegistry) {
     tag: z.string().describe('Tag sin #, ej. 2PP'),
   });
   const nameBody = z.object({ name: z.string().min(1).max(64).describe('Nombre a mostrar, 1 a 64 caracteres') });
-  const setCookie = {
-    'Set-Cookie': { description: 'Cookie bw_session de la sesión', schema: { type: 'string' as const } },
+  const oauthCookie = {
+    'Set-Cookie': {
+      description: 'Cookie bw_oauth con el state del login (10 min); en modo mock, la cookie bw_session de la sesión',
+      schema: { type: 'string' as const },
+    },
+  };
+  const sessionCookie = {
+    'Set-Cookie': {
+      description: 'Solo si el login tuvo éxito: cookie bw_session de la sesión. Si falla no se fija ninguna sesión',
+      schema: { type: 'string' as const },
+    },
   };
 
   registry.registerPath({
@@ -106,7 +115,7 @@ function registerCommunityPaths(registry: OpenAPIRegistry) {
       }),
     },
     responses: {
-      302: { description: 'Redirección a Discord (o a next en modo mock)', headers: setCookie },
+      302: { description: 'Redirección a Discord (o a next en modo mock)', headers: oauthCookie },
       ...errorResponses(503),
     },
   });
@@ -119,7 +128,7 @@ function registerCommunityPaths(registry: OpenAPIRegistry) {
       'Valida state, abre la sesión (cookie bw_session) y redirige (302) a next. Si algo falla redirige a next con login=error.',
     request: { query: z.object({ code: z.string().optional(), state: z.string().optional() }) },
     responses: {
-      302: { description: 'Redirección a next', headers: setCookie },
+      302: { description: 'Redirección a next', headers: sessionCookie },
       ...errorResponses(503),
     },
   });
@@ -226,7 +235,7 @@ function registerCommunityPaths(registry: OpenAPIRegistry) {
     summary: 'Tier list de la comunidad',
     description:
       'Agregado de una temporada (la activa si no se indica season). Solo cuentan los usuarios que ubicaron al menos 10 brawlers. ' +
-      'La letra se deriva del promedio redondeado a 1 decimal (por ejemplo 4.495 se redondea a 4.5 y es S): S desde 4.5, A desde 3.5, B desde 2.5, C desde 1.5 y D por debajo. ' +
+      'La letra se deriva del promedio redondeado a 2 decimales, el mismo average que devuelve la API (por ejemplo 4.495 se redondea a 4.50 y es S; 4.49 es A): S desde 4.5, A desde 3.5, B desde 2.5, C desde 1.5 y D por debajo. ' +
       'Con menos de 5 votos el brawler lleva tier: null ("Pocos votos"). Sin temporadas, o si season no existe, responde 404 NOT_FOUND. Se cachea 5 min (activa) o 24 h (cerrada).',
     request: { query: z.object({ season: z.string().optional().describe('Id de la temporada; defecto: la activa') }) },
     responses: { 200: ok('OK', CommunityTierList), ...errorResponses(400, 404, 503) },

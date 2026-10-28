@@ -196,7 +196,10 @@ describe('OpenAPI', () => {
       expect(text('/seasons', 'post')).toContain('201');
       expect(text('/seasons', 'get')).toContain('arreglo');
       expect(text('/me/favorites', 'get')).toContain('arreglo');
-      expect(text('/tierlist', 'get')).toContain('4.5');
+      expect(text('/tierlist', 'get')).toContain('2 decimales');
+      expect(text('/tierlist', 'get')).not.toContain('1 decimal');
+      expect(text('/tierlist', 'get')).toContain('4.495');
+      expect(text('/tierlist', 'get')).toContain('4.50');
       expect(text('/tierlist', 'get')).toContain('Pocos votos');
       expect(text('/tierlist/me', 'put')).toContain('10 por minuto');
       expect(text('/tierlist/me', 'get')).toContain('NO_ACTIVE_SEASON');
