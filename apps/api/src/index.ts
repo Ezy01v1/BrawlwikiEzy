@@ -3,6 +3,7 @@ import { createApp } from './app';
 import { createCachedFetch } from './cache/cached-fetch';
 import { createMemoryCache } from './cache/memory';
 import { createRedisCache } from './cache/redis';
+import { createSessionStore } from './community/sessions';
 import { loadConfig } from './config';
 import { createDb } from './db/client';
 import { createHealth } from './health';
@@ -44,10 +45,24 @@ if (database && !(await database.ping())) {
   logger.warn('MySQL no responde; la API sigue sin Comunidad hasta que vuelva');
 }
 const { cachedFetch, isCoolingDown } = createCachedFetch({ cache, logger });
+const services = createServices({ supercell, cachedFetch });
 
 const app = createApp({
   logger,
-  services: createServices({ supercell, cachedFetch }),
+  services,
+  // Comunidad solo con MySQL; sin DATABASE_URL la API queda como la v1.
+  ...(database
+    ? {
+        community: {
+          db: database.db,
+          sessions: createSessionStore(database.db),
+          config,
+          cache,
+          // Ids válidos para votar: la lista de brawlers cacheada de Supercell.
+          brawlerIds: async () => new Set((await services.brawlers()).data.map((b) => b.id)),
+        },
+      }
+    : {}),
   health: createHealth({ cache, supercell, isCoolingDown, ...(database ? { db: database } : {}) }),
   rateLimit: {
     generalPerMinute: 60,
