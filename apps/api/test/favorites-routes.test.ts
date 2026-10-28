@@ -93,9 +93,9 @@ describe('GET /me/favorites', () => {
     const res = await list(app);
     expect(res.status).toBe(200);
     expect(res.headers['cache-control']).toBe('no-store');
-    expect(res.body.data.favorites.map((f: { name: string }) => f.name)).toEqual(['Tres', 'Dos', 'Uno']);
-    expect(res.body.data.favorites[1]).toMatchObject({ kind: 'club', tag: '8L0', name: 'Dos' });
-    expect(typeof res.body.data.favorites[0].createdAt).toBe('string');
+    expect(res.body.data.map((f: { name: string }) => f.name)).toEqual(['Tres', 'Dos', 'Uno']);
+    expect(res.body.data[1]).toMatchObject({ kind: 'club', tag: '8L0', name: 'Dos' });
+    expect(typeof res.body.data[0].createdAt).toBe('string');
     expect(res.body.meta).toBeDefined();
   });
 
@@ -126,7 +126,7 @@ describe('PUT /me/favorites/:kind/:tag', () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]?.name).toBe('Primero');
     const l = await list(app);
-    expect(l.body.data.favorites).toMatchObject([{ kind: 'player', tag: '2PP', name: 'Primero' }]);
+    expect(l.body.data).toMatchObject([{ kind: 'player', tag: '2PP', name: 'Primero' }]);
   });
 
   it('kind inválido → 400 INVALID_PARAM; tag inválido → 400 INVALID_TAG', async () => {
@@ -349,8 +349,8 @@ describe.skipIf(!testDb)('con MySQL', () => {
     expect(orig?.name).toBe('Original');
     const l = await request(app).get('/api/v1/me/favorites').set('Cookie', c);
     expect(l.status).toBe(200);
-    const dates = l.body.data.favorites.map((f: { createdAt: string }) => f.createdAt);
+    const dates = l.body.data.map((f: { createdAt: string }) => f.createdAt);
     expect(dates).toEqual([...dates].sort().reverse());
-    expect(l.body.data.favorites.at(-1).tag).toBe('2PP');
+    expect(l.body.data.at(-1).tag).toBe('2PP');
   });
 });

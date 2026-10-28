@@ -70,7 +70,7 @@ export function createFavoritesRouter(deps: CommunityDeps): Router {
   router.get('/', async (req, res) => {
     const list = await store.list(userIdOf(req));
     res.setHeader('Cache-Control', 'no-store');
-    sendData(res, { data: { favorites: list }, source: 'fresh', fetchedAt: Date.now() });
+    sendData(res, { data: list, source: 'fresh', fetchedAt: Date.now() });
   });
 
   // Antes de /:kind/:tag para que "import" no se confunda con un kind.

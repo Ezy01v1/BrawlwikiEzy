@@ -4,6 +4,7 @@ import { and, desc, eq, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Cache } from '../cache/cache';
 import type { CommunityDeps, TierStore } from '../community/router';
+import { retryOnLockConflict } from '../community/retry';
 import { dbCall } from '../community/sessions';
 import { aggregate } from '../community/tiers';
 import type { Db } from '../db/client';
@@ -60,19 +61,21 @@ export function createTierStore(db: Db): TierStore {
     },
     async openSeason(name, now) {
       return dbCall(() =>
-        db.transaction(async (tx) => {
-          // FOR UPDATE sobre las activas serializa dos POST simultáneos: el segundo ve (y cierra) la del primero.
-          const [prev] = await tx
-            .select({ id: seasons.id })
-            .from(seasons)
-            .where(isNull(seasons.endedAt))
-            .orderBy(desc(seasons.id))
-            .for('update');
-          await tx.update(seasons).set({ endedAt: now }).where(isNull(seasons.endedAt));
-          const [header] = await tx.insert(seasons).values({ name, startedAt: now });
-          const season: Season = { id: header.insertId, name, startedAt: now.toISOString(), endedAt: null };
-          return { season, closedId: prev?.id ?? null };
-        }),
+        retryOnLockConflict(() =>
+          db.transaction(async (tx) => {
+            // FOR UPDATE sobre las activas serializa dos POST simultáneos: el segundo ve (y cierra) la del primero.
+            const [prev] = await tx
+              .select({ id: seasons.id })
+              .from(seasons)
+              .where(isNull(seasons.endedAt))
+              .orderBy(desc(seasons.id))
+              .for('update');
+            await tx.update(seasons).set({ endedAt: now }).where(isNull(seasons.endedAt));
+            const [header] = await tx.insert(seasons).values({ name, startedAt: now });
+            const season: Season = { id: header.insertId, name, startedAt: now.toISOString(), endedAt: null };
+            return { season, closedId: prev?.id ?? null };
+          }),
+        ),
       );
     },
     async seasonVotes(seasonId) {
@@ -94,33 +97,35 @@ export function createTierStore(db: Db): TierStore {
     },
     async replaceVotes(userId, votes) {
       return dbCall(() =>
-        db.transaction(async (tx) => {
-          // Bloquear la fila del usuario serializa sus guardados: dos PUT concurrentes no se mezclan
-          // ni chocan en un deadlock entre los DELETE/INSERT; el último en entrar deja su lista completa.
-          const [user] = await tx.select({ id: users.id }).from(users).where(eq(users.id, userId)).for('update');
-          if (!user) throw new AppError('UNAUTHENTICATED');
-          // FOR SHARE: si un admin está abriendo temporada, espera y vota en la nueva.
-          const [active] = await tx
-            .select({ id: seasons.id })
-            .from(seasons)
-            .where(isNull(seasons.endedAt))
-            .orderBy(desc(seasons.id))
-            .limit(1)
-            .for('share');
-          if (!active) return null;
-          await tx.delete(tierVotes).where(and(eq(tierVotes.seasonId, active.id), eq(tierVotes.userId, userId)));
-          for (let i = 0; i < votes.length; i += INSERT_BATCH) {
-            await tx.insert(tierVotes).values(
-              votes.slice(i, i + INSERT_BATCH).map((v) => ({
-                seasonId: active.id,
-                userId,
-                brawlerId: v.brawlerId,
-                tier: v.tier,
-              })),
-            );
-          }
-          return active.id;
-        }),
+        retryOnLockConflict(() =>
+          db.transaction(async (tx) => {
+            // Bloquear la fila del usuario serializa sus guardados: dos PUT concurrentes no se mezclan
+            // ni chocan en un deadlock entre los DELETE/INSERT; el último en entrar deja su lista completa.
+            const [user] = await tx.select({ id: users.id }).from(users).where(eq(users.id, userId)).for('update');
+            if (!user) throw new AppError('UNAUTHENTICATED');
+            // FOR SHARE: si un admin está abriendo temporada, espera y vota en la nueva.
+            const [active] = await tx
+              .select({ id: seasons.id })
+              .from(seasons)
+              .where(isNull(seasons.endedAt))
+              .orderBy(desc(seasons.id))
+              .limit(1)
+              .for('share');
+            if (!active) return null;
+            await tx.delete(tierVotes).where(and(eq(tierVotes.seasonId, active.id), eq(tierVotes.userId, userId)));
+            for (let i = 0; i < votes.length; i += INSERT_BATCH) {
+              await tx.insert(tierVotes).values(
+                votes.slice(i, i + INSERT_BATCH).map((v) => ({
+                  seasonId: active.id,
+                  userId,
+                  brawlerId: v.brawlerId,
+                  tier: v.tier,
+                })),
+              );
+            }
+            return active.id;
+          }),
+        ),
       );
     },
   };
@@ -182,7 +187,7 @@ export function createSeasonsRouter(deps: CommunityDeps): Router {
   const router = Router();
 
   router.get('/', async (_req, res) => {
-    sendData(res, { data: { seasons: await store.listSeasons() }, source: 'fresh', fetchedAt: Date.now() });
+    sendData(res, { data: await store.listSeasons(), source: 'fresh', fetchedAt: Date.now() });
   });
 
   // Solo requireAdmin: sin sesión también es "no admin" → 404, sin revelar la ruta.
@@ -193,7 +198,7 @@ export function createSeasonsRouter(deps: CommunityDeps): Router {
     // La cerrada estaba cacheada como activa (endedAt null, 5 min): se recalcula con su TTL de 24 h.
     if (closedId !== null) await cache.invalidate(req, closedId);
     res.status(201);
-    sendData(res, { data: { season }, source: 'fresh', fetchedAt: Date.now() });
+    sendData(res, { data: season, source: 'fresh', fetchedAt: Date.now() });
   });
 
   return router;

@@ -149,15 +149,15 @@ describe('GET /seasons', () => {
     const { app } = fakeApp({ seasons: [closed(1), closed(2), open(3)] });
     const res = await request(app).get('/api/v1/seasons');
     expect(res.status).toBe(200);
-    expect(res.body.data.seasons.map((s: { id: number }) => s.id)).toEqual([3, 2, 1]);
-    expect(res.body.data.seasons[0]).toEqual({ id: 3, name: 'T3', startedAt: '2026-03-01T00:00:00.000Z', endedAt: null });
+    expect(res.body.data.map((s: { id: number }) => s.id)).toEqual([3, 2, 1]);
+    expect(res.body.data[0]).toEqual({ id: 3, name: 'T3', startedAt: '2026-03-01T00:00:00.000Z', endedAt: null });
   });
 
   it('sin temporadas → lista vacía', async () => {
     const { app } = fakeApp();
     const res = await request(app).get('/api/v1/seasons');
     expect(res.status).toBe(200);
-    expect(res.body.data.seasons).toEqual([]);
+    expect(res.body.data).toEqual([]);
   });
 });
 
@@ -177,11 +177,11 @@ describe('POST /seasons', () => {
     const { app, state } = fakeApp();
     const first = await postSeason(app, { name: '  Temporada 1  ' });
     expect(first.status).toBe(201);
-    expect(first.body.data.season).toMatchObject({ id: 1, name: 'Temporada 1', endedAt: null });
-    expect(typeof first.body.data.season.startedAt).toBe('string');
+    expect(first.body.data).toMatchObject({ id: 1, name: 'Temporada 1', endedAt: null });
+    expect(typeof first.body.data.startedAt).toBe('string');
     const second = await postSeason(app, { name: 'Temporada 2' });
     expect(second.status).toBe(201);
-    expect(second.body.data.season).toMatchObject({ id: 2, name: 'Temporada 2', endedAt: null });
+    expect(second.body.data).toMatchObject({ id: 2, name: 'Temporada 2', endedAt: null });
     expect(state.seasons.filter((s) => s.endedAt === null).map((s) => s.id)).toEqual([2]);
     expect(state.seasons[0]?.endedAt).toBeInstanceOf(Date);
   });
@@ -474,8 +474,8 @@ describe.skipIf(!testDb)('con MySQL', () => {
     expect(s2.status).toBe(201);
     expect(await db.select().from(seasons).where(isNull(seasons.endedAt))).toHaveLength(1);
     const list = await request(app).get('/api/v1/seasons');
-    expect(list.body.data.seasons.map((s: { name: string }) => s.name)).toEqual(['T2', 'T1']);
-    const activeId: number = s2.body.data.season.id;
+    expect(list.body.data.map((s: { name: string }) => s.name)).toEqual(['T2', 'T1']);
+    const activeId: number = s2.body.data.id;
 
     await put(votes(range(0, 12), 5)).expect(204);
     await put(votes(range(10, 10), 2)).expect(204);
