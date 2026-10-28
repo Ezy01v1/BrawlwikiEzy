@@ -1,5 +1,5 @@
 import { type Favorite, FavoriteKindSchema, ImportFavoritesBodySchema } from '@brawlwiki/shared';
-import express, { type RequestHandler, Router } from 'express';
+import { type Request, Router } from 'express';
 import { and, desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import type { CommunityDeps, FavoriteStore } from '../community/router';
@@ -8,6 +8,7 @@ import type { Db } from '../db/client';
 import { favorites } from '../db/schema';
 import { AppError } from '../errors';
 import { requireUser } from '../http/auth';
+import { jsonBody } from '../http/json-body';
 import { parseTagParam } from '../http/params';
 import { sendData } from '../http/respond';
 
@@ -56,17 +57,7 @@ function parseKind(value: unknown): Favorite['kind'] {
   return kind.data;
 }
 
-/** express.json con límite; un cuerpo demasiado grande (413) se informa como 400 INVALID_PARAM. */
-function jsonBody(limit: string): RequestHandler {
-  const parser = express.json({ limit });
-  return (req, res, next) =>
-    parser(req, res, (err?: unknown) => {
-      const type = (err as { type?: unknown } | null | undefined)?.type;
-      next(type === 'entity.too.large' ? new AppError('INVALID_PARAM', 'Cuerpo demasiado grande.') : err);
-    });
-}
-
-function userIdOf(req: express.Request): number {
+function userIdOf(req: Request): number {
   if (!req.user) throw new AppError('UNAUTHENTICATED');
   return req.user.id;
 }
