@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, Lilita_One } from 'next/font/google';
 import { cookies } from 'next/headers';
-import type { ReactNode } from 'react';
+import { type ReactNode, Suspense } from 'react';
+import { LoginNotice } from '@/components/account/LoginNotice';
 import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
 import { HydrationFlag } from '@/components/layout/HydrationFlag';
@@ -34,6 +35,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         </a>
         <Header theme={theme} />
         <main id="contenido" className="mx-auto w-full max-w-5xl flex-1 px-4 md:px-6">
+          <Suspense fallback={null}>
+            <LoginNotice />
+          </Suspense>
           {children}
         </main>
         <Footer />

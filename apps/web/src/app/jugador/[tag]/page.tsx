@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
+import { ClaimTag } from '@/components/account/ClaimTag';
 import { BrawlerGrid } from '@/components/brawler/BrawlerGrid';
 import { BattleLogSection } from '@/components/player/BattleLogSection';
 import { BattleLogSkeleton } from '@/components/player/BattleLogSkeleton';
@@ -58,6 +59,10 @@ export default async function PlayerPage({ params, searchParams }: PageProps<'/j
     <>
       <RecordVisit entry={{ type: 'player', tag: player.tag, name: player.name }} />
       <PlayerHeader player={player} />
+      {/* La sesión ya la pidió el header (getSession está cacheada por request): esto no espera otra llamada. */}
+      <Suspense fallback={null}>
+        <ClaimTag tag={player.tag} />
+      </Suspense>
       <StaleBadge meta={meta} />
       <div className="mt-2 grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start lg:gap-x-6 lg:gap-y-0">
         <div className="min-w-0 lg:col-start-2 lg:row-start-1">

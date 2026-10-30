@@ -6,7 +6,8 @@ const nextConfig: NextConfig = {
   // El CSS (~7 KB gzip) va dentro del HTML: ahorra una ida y vuelta antes del primer pintado en redes móviles.
   experimental: { inlineCss: true },
   images: {
-    remotePatterns: [new URL('https://cdn.brawlify.com/**')],
+    // Discord: avatares de las cuentas de Comunidad (la API los arma como cdn.discordapp.com/avatars/<id>/<hash>.png).
+    remotePatterns: [new URL('https://cdn.brawlify.com/**'), new URL('https://cdn.discordapp.com/avatars/**')],
   },
 };
 
