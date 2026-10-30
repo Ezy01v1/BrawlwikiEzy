@@ -76,9 +76,6 @@ export default async function CuentaPage() {
           <h2 id="cuenta-borrar" className="font-display text-lg">
             Borrar cuenta
           </h2>
-          <p className="text-sm text-muted">
-            Se borran tu cuenta, tus favoritos y tus votos de la tier list. No se puede deshacer.
-          </p>
           <DeleteAccountForm />
         </section>
       </Card>

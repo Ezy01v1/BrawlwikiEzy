@@ -1,8 +1,10 @@
 import type { User } from '@brawlwiki/shared';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { createElement, type ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ClaimTag } from '@/components/account/ClaimTag';
+import { ClaimTagButton } from '@/components/account/ClaimTagButton';
 import { DeleteAccountForm } from '@/components/account/DeleteAccountForm';
 import { LinkTagForm } from '@/components/account/LinkTagForm';
 import { LoginNotice } from '@/components/account/LoginNotice';
@@ -21,6 +23,12 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => search,
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
   redirect: (url: string) => redirect(url),
+}));
+
+// Marca los <Link> de Next: el login no puede ser uno, porque Next lo prefetchearía y arrancaría el OAuth.
+vi.mock('next/link', () => ({
+  default: ({ href, children, prefetch: _prefetch, ...rest }: { href: string; children: ReactNode; prefetch?: boolean }) =>
+    createElement('a', { href, 'data-next-link': '', ...rest }, children),
 }));
 
 const getSession = vi.fn();
@@ -52,7 +60,10 @@ describe('Header con Comunidad', () => {
     pathname = '/rankings';
     getSession.mockResolvedValue({ enabled: true, user: null });
     render(await Header({}));
-    expect(screen.getByRole('link', { name: 'Entrar' })).toHaveAttribute('href', '/auth/discord?next=/rankings');
+    const login = screen.getByRole('link', { name: 'Entrar' });
+    expect(login).toHaveAttribute('href', '/auth/discord?next=/rankings');
+    expect(login.tagName).toBe('A');
+    expect(login).not.toHaveAttribute('data-next-link');
     expect(screen.queryByRole('link', { name: 'Mi cuenta' })).not.toBeInTheDocument();
   });
 
@@ -87,10 +98,12 @@ describe('Header con Comunidad', () => {
     );
     expect(screen.queryByRole('link', { name: 'Entrar' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Mi cuenta' })).not.toBeInTheDocument();
-    expect(within(screen.getByRole('banner')).getByRole('link', { name: 'Clubes' })).toHaveAttribute(
-      'href',
-      '/clubes/comparar',
-    );
+    // Dos copias: dentro de la navegación principal (escritorio) y suelta en la fila del header (móvil).
+    const clubs = within(screen.getByRole('banner')).getAllByRole('link', { name: 'Clubes' });
+    expect(clubs).toHaveLength(2);
+    for (const link of clubs) expect(link).toHaveAttribute('href', '/clubes/comparar');
+    const main = screen.getByRole('navigation', { name: 'Navegación principal' });
+    expect(within(main).getByRole('link', { name: 'Clubes' })).toHaveAttribute('href', '/clubes/comparar');
     const nav = screen.getByRole('navigation', { name: 'Navegación inferior' });
     expect(within(nav).getByRole('link', { name: /Tier list/ })).toHaveAttribute('href', '/tierlist');
   });
@@ -99,10 +112,9 @@ describe('Header con Comunidad', () => {
     pathname = '/club/2YPLQ';
     getSession.mockResolvedValue({ enabled: false, user: null });
     render(await Header({}));
-    expect(within(screen.getByRole('banner')).getByRole('link', { name: 'Clubes' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    );
+    for (const link of within(screen.getByRole('banner')).getAllByRole('link', { name: 'Clubes' })) {
+      expect(link).toHaveAttribute('aria-current', 'page');
+    }
   });
 });
 
@@ -155,6 +167,7 @@ describe('DeleteAccountForm', () => {
     await user.clear(input);
     await user.type(input, 'BORRAR');
     expect(button).toBeEnabled();
+    expect(input).toHaveAccessibleDescription(expect.stringContaining('No se puede deshacer'));
     await user.click(button);
     expect(deleteAccount).toHaveBeenCalledWith('BORRAR');
     expect(await screen.findByRole('alert')).toHaveTextContent('Comunidad no está disponible ahora');
@@ -168,10 +181,25 @@ describe('"Este soy yo"', () => {
     getSession.mockResolvedValue({ enabled: false, user: null });
     expect(await ClaimTag({ tag: '2PP' })).toBeNull();
     getSession.mockResolvedValue({ enabled: true, user: { ...USER, playerTag: '2PP' } });
-    expect(await ClaimTag({ tag: '2PP' })).toBeNull();
+    const linked = render(await ClaimTag({ tag: '2PP' }));
+    expect(screen.queryByRole('button', { name: 'Este soy yo' })).not.toBeInTheDocument();
+    linked.unmount();
     getSession.mockResolvedValue({ enabled: true, user: { ...USER, playerTag: '8CGRV' } });
     render(await ClaimTag({ tag: '2PP' }));
     expect(screen.getByRole('button', { name: 'Este soy yo' })).toBeInTheDocument();
+  });
+
+  it('al vincular, el botón desaparece (revalidación) y un status persistente anuncia "Tag vinculado"', async () => {
+    const user = userEvent.setup();
+    linkTag.mockResolvedValue({ ok: true });
+    const { rerender } = render(<ClaimTagButton tag="2PP" linked={false} />);
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    await user.click(screen.getByRole('button', { name: 'Este soy yo' }));
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Tag vinculado'));
+    // Lo que hace revalidatePath: el servidor vuelve a renderizar ya con el tag vinculado.
+    rerender(<ClaimTagButton tag="2PP" linked />);
+    expect(screen.queryByRole('button', { name: 'Este soy yo' })).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Tag vinculado');
   });
 
   it('vincula el tag; si la sesión venció ofrece entrar de nuevo', async () => {
@@ -183,10 +211,9 @@ describe('"Este soy yo"', () => {
     await user.click(screen.getByRole('button', { name: 'Este soy yo' }));
     expect(linkTag).toHaveBeenCalledWith('2PP');
     expect(await screen.findByRole('alert')).toHaveTextContent('Tu sesión venció');
-    expect(screen.getByRole('link', { name: 'Entrar con Discord' })).toHaveAttribute(
-      'href',
-      '/auth/discord?next=/jugador/2PP',
-    );
+    const login = screen.getByRole('link', { name: 'Entrar con Discord' });
+    expect(login).toHaveAttribute('href', '/auth/discord?next=/jugador/2PP');
+    expect(login).not.toHaveAttribute('data-next-link');
   });
 });
 

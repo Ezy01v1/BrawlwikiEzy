@@ -83,6 +83,21 @@ describe('getSession', () => {
     expect(await getSession()).toEqual({ enabled: false, user: null });
   });
 
+  it('una API colgada no frena la página: corta a los SESSION_TIMEOUT_MS (1,5 s) y queda deshabilitada', async () => {
+    const { getSession, SESSION_TIMEOUT_MS } = await import('@/lib/session');
+    expect(SESSION_TIMEOUT_MS).toBe(1500);
+    // fetch que nunca responde: solo termina cuando se aborta la señal del timeout.
+    fetchMock.mockImplementationOnce(
+      (_url: string, init: RequestInit) =>
+        new Promise((_resolve, reject) => init.signal?.addEventListener('abort', () => reject(init.signal?.reason))),
+    );
+    const started = Date.now();
+    expect(await getSession()).toEqual({ enabled: false, user: null });
+    const elapsed = Date.now() - started;
+    expect(elapsed).toBeGreaterThanOrEqual(1400);
+    expect(elapsed).toBeLessThan(3000);
+  });
+
   it('otro error de la API → deshabilitada y se registra', async () => {
     const { getSession } = await import('@/lib/session');
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});

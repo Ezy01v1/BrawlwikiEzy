@@ -11,13 +11,15 @@ export function AccountMenu({ user }: { user: User | null }) {
   const pathname = usePathname() ?? '/';
 
   if (!user) {
+    // <a> y no <Link>: Next prefetchea los Link visibles (y al pasar el mouse), y /auth/discord es un route handler
+    // con efectos (arranca el OAuth y pisa la cookie de state; con AUTH_MOCK=1 hasta inicia sesión).
     return (
-      <Link
+      <a
         href={loginHref(pathname)}
         className="inline-flex min-h-11 shrink-0 items-center rounded-chip px-3 text-sm font-semibold text-fg hover:bg-surface-2"
       >
         Entrar
-      </Link>
+      </a>
     );
   }
 

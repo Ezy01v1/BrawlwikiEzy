@@ -18,6 +18,9 @@ export function DeleteAccountForm() {
 
   return (
     <form action={formAction} className="flex flex-col gap-2">
+      <p id={`${id}-warning`} className="text-sm text-muted">
+        Se borran tu cuenta, tus favoritos y tus votos de la tier list. No se puede deshacer.
+      </p>
       <label htmlFor={id} className="text-sm font-semibold text-muted">
         Escribe {DELETE_CONFIRM_WORD} para confirmar
       </label>
@@ -25,6 +28,7 @@ export function DeleteAccountForm() {
         <input
           id={id}
           name="confirm"
+          aria-describedby={`${id}-warning`}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           autoComplete="off"

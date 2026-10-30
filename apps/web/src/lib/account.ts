@@ -1,6 +1,4 @@
-import type { User } from '@brawlwiki/shared';
 import type { ApiErrorCode } from './api';
-import type { Session } from './session';
 
 /** Palabra que hay que escribir para borrar la cuenta; la acción la vuelve a comprobar en el servidor. */
 export const DELETE_CONFIRM_WORD = 'BORRAR';
@@ -20,11 +18,6 @@ export function loginHref(path: string): string {
 
 export function profileHref(tag: string): string {
   return `/jugador/${tag}`;
-}
-
-/** "Este soy yo": con sesión, con Comunidad activa y si ese perfil no es ya el vinculado. */
-export function canClaimTag(session: Session, tag: string): session is Session & { user: User } {
-  return session.enabled && session.user !== null && session.user.playerTag !== tag;
 }
 
 export function actionErrorMessage(code: ActionErrorCode): string {
