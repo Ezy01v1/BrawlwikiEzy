@@ -6,6 +6,7 @@ import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
 import { HydrationFlag } from '@/components/layout/HydrationFlag';
 import { NavLinks } from '@/components/layout/NavLinks';
+import { siteOrigin } from '@/lib/site';
 import { parseTheme, THEME_COOKIE } from '@/lib/theme';
 import './globals.css';
 
@@ -13,7 +14,7 @@ const lilita = Lilita_One({ weight: '400', subsets: ['latin'], variable: '--font
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
+  metadataBase: new URL(siteOrigin()),
   title: { default: 'BrawlWiki', template: '%s · BrawlWiki' },
   description: 'Stats de jugadores, clubes y rankings de Brawl Stars. Fan page no oficial.',
 };

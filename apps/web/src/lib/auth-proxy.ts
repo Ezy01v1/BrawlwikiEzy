@@ -21,7 +21,8 @@ function forwardedHeaders(req: Request): Record<string, string> {
   return headers;
 }
 
-async function callApi(path: string, init: RequestInit): Promise<Response | null> {
+/** `logPath` es la ruta sin query: la del callback lleva `code` y `state`, que no van a los logs. */
+async function callApi(path: string, logPath: string, init: RequestInit): Promise<Response | null> {
   try {
     return await fetch(`${apiBaseUrl()}${path}`, {
       ...init,
@@ -30,7 +31,7 @@ async function callApi(path: string, init: RequestInit): Promise<Response | null
       signal: AbortSignal.timeout(AUTH_PROXY_TIMEOUT_MS),
     });
   } catch (err) {
-    console.error('[auth] la API no respondió', path, err instanceof Error ? err.message : err);
+    console.error('[auth] la API no respondió', logPath, err instanceof Error ? err.message : err);
     return null;
   }
 }
@@ -44,7 +45,7 @@ export async function proxyLoginRedirect(
   apiPath: '/auth/discord' | '/auth/discord/callback',
 ): Promise<Response> {
   const { search } = new URL(req.url);
-  const res = await callApi(`${apiPath}${search}`, { method: 'GET', headers: forwardedHeaders(req) });
+  const res = await callApi(`${apiPath}${search}`, apiPath, { method: 'GET', headers: forwardedHeaders(req) });
   if (!res) return redirectTo(LOGIN_ERROR_PATH, 302);
 
   const cookies = res.headers.getSetCookie();
@@ -54,6 +55,7 @@ export async function proxyLoginRedirect(
     await res.body?.cancel().catch(() => {});
     return redirectTo(LOGIN_ERROR_PATH, 302, cookies);
   }
+  await res.body?.cancel().catch(() => {});
   return redirectTo(location, 302, cookies);
 }
 
@@ -63,7 +65,7 @@ export async function proxyLoginRedirect(
  */
 export async function proxyLogout(req: Request): Promise<Response> {
   const headers = { ...forwardedHeaders(req), Origin: req.headers.get('origin') ?? siteOrigin() };
-  const res = await callApi('/auth/logout', { method: 'POST', headers });
+  const res = await callApi('/auth/logout', '/auth/logout', { method: 'POST', headers });
   if (!res) return redirectTo(LOGIN_ERROR_PATH, 303);
   await res.body?.cancel().catch(() => {});
   return redirectTo('/', 303, res.headers.getSetCookie());

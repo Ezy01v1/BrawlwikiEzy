@@ -77,9 +77,14 @@ describe('GET /auth/discord/callback', () => {
 
   it('API caída → /?login=error', async () => {
     fetchMock.mockRejectedValue(new TypeError('fetch failed'));
-    const res = await discordCallback(new Request(`${SITE}/auth/discord/callback?code=a&state=b`));
+    const res = await discordCallback(new Request(`${SITE}/auth/discord/callback?code=secret&state=b`));
     expect(res.status).toBe(302);
     expect(res.headers.get('location')).toBe('/?login=error');
+    // El code y el state de Discord no van a los logs.
+    const logged = JSON.stringify(vi.mocked(console.error).mock.calls);
+    expect(logged).toContain('/auth/discord/callback');
+    expect(logged).not.toContain('secret');
+    expect(logged).not.toContain('?');
   });
 });
 

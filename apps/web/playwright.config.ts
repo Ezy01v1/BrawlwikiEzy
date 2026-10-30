@@ -34,7 +34,15 @@ export default defineConfig({
       cwd: '../..',
       url: `${API_URL}/health`,
       // Las variables del entorno tienen prioridad sobre apps/api/.env (process.loadEnvFile no las pisa).
-      env: { SUPERCELL_MOCK: '1', HOST: '127.0.0.1', PORT: String(API_PORT), LOG_LEVEL: 'warn', REDIS_URL: '' },
+      env: {
+        SUPERCELL_MOCK: '1',
+        HOST: '127.0.0.1',
+        PORT: String(API_PORT),
+        LOG_LEVEL: 'warn',
+        REDIS_URL: '',
+        // El Origin que manda la web E2E; si no coincide, la API responde 403 a las mutaciones.
+        PUBLIC_SITE_URL: WEB_URL,
+      },
       reuseExistingServer: false,
       timeout: 30_000,
     },

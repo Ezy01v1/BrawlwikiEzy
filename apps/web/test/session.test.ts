@@ -41,6 +41,15 @@ describe('requestContext', () => {
   });
 });
 
+describe('siteOrigin', () => {
+  it('sin NEXT_PUBLIC_SITE_URL usa el puerto de desarrollo 3200 (el default de PUBLIC_SITE_URL en la API)', async () => {
+    const { siteOrigin, DEFAULT_SITE_URL } = await import('@/lib/site');
+    vi.stubEnv('NEXT_PUBLIC_SITE_URL', undefined);
+    expect(DEFAULT_SITE_URL).toBe('http://localhost:3200');
+    expect(siteOrigin()).toBe('http://localhost:3200');
+  });
+});
+
 describe('getSession', () => {
   it('con sesión → enabled y el usuario; reenvía la cookie y XFF a GET /me', async () => {
     const { getSession, getMe } = await import('@/lib/session');
