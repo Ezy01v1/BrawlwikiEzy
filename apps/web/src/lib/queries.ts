@@ -12,11 +12,28 @@ import { cache } from 'react';
 import { z } from 'zod';
 import { apiGet } from './api';
 import { RANKING_LIMIT } from './rankings';
+import { siteOrigin } from './site';
 
-/** Reenvía la IP del usuario tal cual llegó (Nginx la agrega); Express confía solo en loopback. */
-async function forwardedFor(): Promise<string | null> {
+export interface RequestContext {
+  /** IP del usuario tal cual llegó (Nginx la agrega); Express confía solo en loopback. */
+  forwardedFor: string | null;
+  /** Header `Cookie` del navegador, tal cual (la API solo lee `bw_session`). */
+  cookie: string | null;
+  /** Origin del sitio público, para los requests que modifican (la API lo exige). */
+  origin: string;
+}
+
+export async function requestContext(): Promise<RequestContext> {
   const h = await headers();
-  return h.get('x-forwarded-for') ?? h.get('x-real-ip');
+  return {
+    forwardedFor: h.get('x-forwarded-for') ?? h.get('x-real-ip'),
+    cookie: h.get('cookie'),
+    origin: siteOrigin(),
+  };
+}
+
+async function forwardedFor(): Promise<string | null> {
+  return (await requestContext()).forwardedFor;
 }
 
 const enc = encodeURIComponent;
