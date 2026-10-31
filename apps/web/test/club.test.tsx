@@ -24,11 +24,16 @@ describe('clubs', () => {
 
 describe('componentes de club', () => {
   it('ClubHeader: nombre truncable, tag, tipo y favorito de club', () => {
-    render(<ClubHeader club={CLUB} />);
+    render(<ClubHeader club={CLUB} favorite={{ signedIn: false, initial: false }} />);
     expect(screen.getByRole('heading', { level: 1, name: 'Los Cracks' })).toHaveClass('truncate');
     expect(screen.getByText('#2YPLQ · Solo por invitación')).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Escudo de Los Cracks' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Guardar en favoritos' })).toBeInTheDocument();
+  });
+
+  it('ClubHeader pasa al botón el estado del favorito que manda el servidor', () => {
+    render(<ClubHeader club={CLUB} favorite={{ signedIn: true, initial: true }} />);
+    expect(screen.getByRole('button', { name: 'Quitar de favoritos' })).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('ClubStats: trofeos, miembros sobre 30, promedio, requeridos y descripción solo si existe', () => {

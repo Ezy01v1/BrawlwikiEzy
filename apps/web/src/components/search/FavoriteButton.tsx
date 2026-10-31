@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from 'react';
 import { addFavorite, removeFavorite } from '@/app/favorites/actions';
 import { ActionError } from '@/components/account/ActionError';
 import type { ActionErrorCode } from '@/lib/account';
+import { callAction } from '@/lib/action-call';
 import { isFavorite, type SavedEntry, toggleFavorite } from '@/lib/local-store';
 
 /**
@@ -45,13 +46,16 @@ export function FavoriteButton({
     setOn(next);
     setError(null);
     startTransition(async () => {
-      const r = next
-        ? await addFavorite(entry.type, entry.tag, entry.name ?? '')
-        : await removeFavorite(entry.type, entry.tag);
-      busy.current = false;
-      if (!r.ok) {
-        setOn(!next);
-        setError(r.code);
+      try {
+        const r = await callAction(() =>
+          next ? addFavorite(entry.type, entry.tag, entry.name ?? '') : removeFavorite(entry.type, entry.tag),
+        );
+        if (!r.ok) {
+          setOn(!next);
+          setError(r.code);
+        }
+      } finally {
+        busy.current = false;
       }
     });
   }

@@ -55,6 +55,11 @@ export function clearFavorites(): void {
   }
 }
 
+/** Reemplaza la lista: tras importar quedan solo los que no entraron en el envío. */
+export function setFavorites(list: SavedEntry[]): void {
+  write(FAVORITES_KEY, list);
+}
+
 export function isFavorite(entry: SavedEntry): boolean {
   return getFavorites().some((e) => same(e, entry));
 }

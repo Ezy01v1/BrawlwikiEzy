@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import { linkTag } from '@/app/cuenta/actions';
 import { Button } from '@/components/ui/Button';
 import type { ActionErrorCode } from '@/lib/account';
+import { callAction } from '@/lib/action-call';
 import { ActionError } from './ActionError';
 
 /**
@@ -18,7 +19,7 @@ export function ClaimTagButton({ tag, linked }: { tag: string; linked: boolean }
   function claim() {
     setError(null);
     startTransition(async () => {
-      const r = await linkTag(tag);
+      const r = await callAction(() => linkTag(tag));
       if (r.ok) setDone(true);
       else setError(r.code);
     });

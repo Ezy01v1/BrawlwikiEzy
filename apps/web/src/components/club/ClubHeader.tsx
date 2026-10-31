@@ -4,7 +4,7 @@ import { GameImage } from '@/components/ui/GameImage';
 import type { FavoriteState } from '@/lib/account-favorites';
 import { clubTypeLabel } from '@/lib/clubs';
 
-export function ClubHeader({ club, favorite }: { club: Club; favorite?: FavoriteState }) {
+export function ClubHeader({ club, favorite }: { club: Club; favorite: FavoriteState }) {
   return (
     <header className="mt-4 flex items-center gap-3">
       <GameImage

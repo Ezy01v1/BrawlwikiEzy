@@ -4,6 +4,7 @@ import { useActionState, useId, useState } from 'react';
 import { deleteAccount } from '@/app/cuenta/actions';
 import { buttonClass } from '@/components/ui/Button';
 import { type ActionResult, DELETE_CONFIRM_WORD } from '@/lib/account';
+import { callAction } from '@/lib/action-call';
 import { ActionError } from './ActionError';
 
 /** Borrar la cuenta pide escribir BORRAR; el servidor lo vuelve a comprobar. Si sale bien, la acción redirige a `/`. */
@@ -11,7 +12,8 @@ export function DeleteAccountForm() {
   const id = useId();
   const [value, setValue] = useState('');
   const [state, formAction, pending] = useActionState<ActionResult | null, FormData>(
-    (_prev, form) => deleteAccount(String(form.get('confirm') ?? '')),
+    // Si sale bien, la acción redirige: callAction relanza esa redirección y solo convierte los rechazos reales.
+    (_prev, form) => callAction(() => deleteAccount(String(form.get('confirm') ?? ''))),
     null,
   );
   const ready = value === DELETE_CONFIRM_WORD;

@@ -4,7 +4,7 @@ import { FavoriteButton } from '@/components/search/FavoriteButton';
 import { GameImage } from '@/components/ui/GameImage';
 import type { FavoriteState } from '@/lib/account-favorites';
 
-export function PlayerHeader({ player, favorite }: { player: Player; favorite?: FavoriteState }) {
+export function PlayerHeader({ player, favorite }: { player: Player; favorite: FavoriteState }) {
   return (
     <header className="mt-4 flex items-center gap-3">
       <GameImage

@@ -36,19 +36,25 @@ export function favoriteToEntry(f: Favorite): SavedEntry {
 /**
  * Favoritos locales → ítems para `importFavorites`. La API rechaza todo el envío si un tag es inválido, así que
  * los inválidos se descartan aquí (con el mismo parser que la búsqueda). Sin repetidos y como máximo 100: la
- * lista local tiene el más reciente primero, así que quedan los más recientes.
+ * lista local tiene el más reciente primero, así que se mandan los más recientes. `rest` son los válidos que no
+ * entraron: quedan en `localStorage` para la próxima carga.
  */
-export function toImportItems(entries: readonly SavedEntry[]): FavoriteItem[] {
+export function splitForImport(entries: readonly SavedEntry[]): { items: FavoriteItem[]; rest: SavedEntry[] } {
   const seen = new Set<string>();
   const items: FavoriteItem[] = [];
+  const rest: SavedEntry[] = [];
   for (const e of entries) {
     const tag = parseTag(e.tag);
     if (!tag || !isFavoriteKind(e.type)) continue;
     const id = `${e.type}:${tag}`;
     if (seen.has(id)) continue;
     seen.add(id);
-    items.push({ kind: e.type, tag, name: cleanFavoriteName(e.name) });
-    if (items.length === IMPORT_MAX) break;
+    if (items.length < IMPORT_MAX) items.push({ kind: e.type, tag, name: cleanFavoriteName(e.name) });
+    else rest.push({ ...e, tag });
   }
-  return items;
+  return { items, rest };
+}
+
+export function toImportItems(entries: readonly SavedEntry[]): FavoriteItem[] {
+  return splitForImport(entries).items;
 }

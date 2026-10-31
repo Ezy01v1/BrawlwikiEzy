@@ -15,6 +15,8 @@ let pathname = '/jugador/2PP';
 vi.mock('next/navigation', () => ({
   usePathname: () => pathname,
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+  // Aquí ninguna acción redirige: no hay errores internos de Next que relanzar.
+  unstable_rethrow: () => {},
 }));
 
 const addFavorite = vi.fn();
@@ -111,6 +113,19 @@ describe('FavoriteButton con sesión', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Guardar en favoritos' }));
     await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
     expect(screen.getByRole('button', { name: 'Quitar de favoritos' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('si la acción se rechaza (sin red, o una pestaña vieja tras un deploy) vuelve atrás, avisa y sigue usable', async () => {
+    addFavorite.mockRejectedValueOnce(new Error('Failed to find Server Action')).mockResolvedValueOnce({ ok: true });
+    render(<FavoriteButton entry={ENTRY} signedIn initial={false} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar en favoritos' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Comunidad no está disponible ahora');
+    expect(screen.getByRole('button', { name: 'Guardar en favoritos' })).toHaveAttribute('aria-pressed', 'false');
+    // El candado se liberó: el segundo clic vuelve a llamar a la acción.
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar en favoritos' }));
+    await waitFor(() => expect(addFavorite).toHaveBeenCalledTimes(2));
+    expect(await screen.findByRole('button', { name: 'Quitar de favoritos' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('un doble clic mientras la acción está en curso no manda dos pedidos', async () => {
@@ -281,6 +296,33 @@ describe('FavoritesImporter', () => {
     render(<FavoritesImporter />);
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Subimos tus 3 favoritos a tu cuenta'));
     expect(importFavorites).toHaveBeenCalledTimes(2);
+  });
+
+  it('si la acción se rechaza deja los locales y no avisa', async () => {
+    seed(2);
+    importFavorites.mockRejectedValue(new Error('Failed to fetch'));
+    render(<FavoritesImporter />);
+    await waitFor(() => expect(importFavorites).toHaveBeenCalledTimes(1));
+    await act(async () => {});
+    expect(getLocalFavorites()).toHaveLength(2);
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+  });
+
+  it('con más de 100 importa los 100 más recientes y deja el resto para la próxima carga', async () => {
+    const many = Array.from({ length: 130 }, (_, i) => ({
+      type: 'player' as const,
+      tag: `2${'PYLQGRJCUV'[i % 10]}${'PYLQGRJCUV0289'[Math.floor(i / 10)]}`,
+      name: `J${i}`,
+    }));
+    // Más uno inválido entre medio: no se sube ni se guarda de vuelta.
+    localStorage.setItem('bw:favorites', JSON.stringify([...many.slice(0, 50), { type: 'club', tag: 'HOLA!' }, ...many.slice(50)]));
+    importFavorites.mockResolvedValue({ ok: true, imported: 100 });
+    render(<FavoritesImporter />);
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Subimos tus 100 favoritos a tu cuenta'));
+    const sent = importFavorites.mock.calls[0]![0] as { tag: string }[];
+    expect(sent).toHaveLength(100);
+    expect(sent.map((i) => i.tag)).toEqual(many.slice(0, 100).map((e) => e.tag));
+    expect(getLocalFavorites()).toEqual(many.slice(100));
   });
 
   it('dos montados a la vez importan una sola vez', async () => {

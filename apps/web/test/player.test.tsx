@@ -8,6 +8,8 @@ import { parseOrder, sortBrawlers } from '@/lib/brawlers';
 import { first, parseTab } from '@/lib/search-params';
 import { brawler, PLAYER } from './fixtures';
 
+const SIGNED_OUT = { signedIn: false, initial: false };
+
 describe('orden y parámetros', () => {
   it('sortBrawlers por trofeos, poder y nombre sin mutar', () => {
     const list = [
@@ -53,7 +55,7 @@ describe('BrawlerTile y BrawlerGrid', () => {
 
 describe('PlayerHeader y PlayerStats', () => {
   it('header con nombre truncable, tag, nivel y club', () => {
-    render(<PlayerHeader player={PLAYER} />);
+    render(<PlayerHeader player={PLAYER} favorite={SIGNED_OUT} />);
     const h1 = screen.getByRole('heading', { level: 1, name: 'EzyPlayer' });
     expect(h1).toHaveClass('truncate');
     expect(screen.getByText(/#2PP · Nivel 187/)).toBeInTheDocument();
@@ -62,7 +64,7 @@ describe('PlayerHeader y PlayerStats', () => {
   });
 
   it('header sin club', () => {
-    render(<PlayerHeader player={{ ...PLAYER, club: null }} />);
+    render(<PlayerHeader player={{ ...PLAYER, club: null }} favorite={SIGNED_OUT} />);
     expect(screen.getByText(/Sin club/)).toBeInTheDocument();
   });
 

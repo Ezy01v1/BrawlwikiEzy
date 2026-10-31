@@ -2,24 +2,26 @@
 
 import { useEffect, useState } from 'react';
 import { importFavorites } from '@/app/favorites/actions';
-import { toImportItems } from '@/lib/favorites';
-import { clearFavorites, getFavorites } from '@/lib/local-store';
+import { splitForImport } from '@/lib/favorites';
+import { clearFavorites, getFavorites, setFavorites } from '@/lib/local-store';
 
 /**
  * Importación en curso, compartida por todas las instancias: el doble efecto de StrictMode (o dos montajes) se
- * suman a la misma llamada en vez de mandar otra. Al terminar se libera: si salió bien ya no quedan favoritos
- * locales; si falló, el próximo montaje (la próxima carga) reintenta.
+ * suman a la misma llamada en vez de mandar otra. Al terminar se libera: si salió bien solo quedan locales los que
+ * no entraron en el envío (más de 100); si falló, quedan todos. En ambos casos la próxima carga sigue.
  */
 let inflight: Promise<number | null> | null = null;
 
 function runImport(): Promise<number | null> | null {
   if (inflight) return inflight;
-  const items = toImportItems(getFavorites());
+  const { items, rest } = splitForImport(getFavorites());
   if (items.length === 0) return null;
   inflight = importFavorites(items)
     .then((r) => {
       if (!r.ok) return null;
-      clearFavorites();
+      // Si había más de 100, los que no entraron se suben en la próxima carga.
+      if (rest.length > 0) setFavorites(rest);
+      else clearFavorites();
       return r.imported;
     })
     .catch(() => null)

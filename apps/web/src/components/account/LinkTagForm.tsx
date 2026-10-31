@@ -5,6 +5,7 @@ import { type FormEvent, useId, useState, useTransition } from 'react';
 import { linkTag } from '@/app/cuenta/actions';
 import { Button } from '@/components/ui/Button';
 import { type ActionErrorCode, INVALID_TAG_MESSAGE } from '@/lib/account';
+import { callAction } from '@/lib/action-call';
 import { ActionError } from './ActionError';
 
 /** Cambiar o quitar el tag vinculado desde /cuenta. */
@@ -20,7 +21,7 @@ export function LinkTagForm({ current }: { current: string | null }) {
     setError(null);
     setDone(null);
     startTransition(async () => {
-      const r = await linkTag(tag);
+      const r = await callAction(() => linkTag(tag));
       if (!r.ok) {
         setError(r.code);
         return;

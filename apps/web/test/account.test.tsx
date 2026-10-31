@@ -23,6 +23,10 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => search,
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
   redirect: (url: string) => redirect(url),
+  // Como el real: relanza las redirecciones de Next (aquí, el Error "NEXT_REDIRECT …" del mock de redirect).
+  unstable_rethrow: (e: unknown) => {
+    if (e instanceof Error && e.message.startsWith('NEXT_REDIRECT')) throw e;
+  },
 }));
 
 // Marca los <Link> de Next: el login no puede ser uno, porque Next lo prefetchearía y arrancaría el OAuth.
@@ -176,6 +180,16 @@ describe('DeleteAccountForm', () => {
     expect(deleteAccount).toHaveBeenCalledWith('BORRAR');
     expect(await screen.findByRole('alert')).toHaveTextContent('Comunidad no está disponible ahora');
   });
+
+  it('si la acción se rechaza (sin red) muestra el error y no queda en "Borrando…"', async () => {
+    const user = userEvent.setup();
+    deleteAccount.mockRejectedValue(new Error('Failed to fetch'));
+    render(<DeleteAccountForm />);
+    await user.type(screen.getByLabelText('Escribe BORRAR para confirmar'), 'BORRAR');
+    await user.click(screen.getByRole('button', { name: 'Borrar cuenta' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Comunidad no está disponible ahora');
+    expect(screen.getByRole('button', { name: 'Borrar cuenta' })).toBeEnabled();
+  });
 });
 
 describe('"Este soy yo"', () => {
@@ -219,6 +233,16 @@ describe('"Este soy yo"', () => {
     expect(login).toHaveAttribute('href', '/auth/discord?next=/jugador/2PP');
     expect(login).not.toHaveAttribute('data-next-link');
   });
+
+  it('si la acción se rechaza (sin red) muestra el error y el botón vuelve a estar disponible', async () => {
+    const user = userEvent.setup();
+    linkTag.mockRejectedValue(new Error('Failed to find Server Action'));
+    render(<ClaimTagButton tag="2PP" linked={false} />);
+    await user.click(screen.getByRole('button', { name: 'Este soy yo' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Comunidad no está disponible ahora');
+    expect(screen.getByRole('button', { name: 'Este soy yo' })).toBeEnabled();
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+  });
 });
 
 describe('LinkTagForm', () => {
@@ -247,6 +271,18 @@ describe('LinkTagForm', () => {
     await user.click(screen.getByRole('button', { name: 'Quitar tag' }));
     expect(linkTag).toHaveBeenCalledWith(null);
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Tag quitado'));
+  });
+
+  it('si la acción se rechaza (sin red) muestra el error y los botones vuelven a estar disponibles', async () => {
+    const user = userEvent.setup();
+    linkTag.mockRejectedValue(new Error('Failed to fetch'));
+    render(<LinkTagForm current="2PP" />);
+    await user.type(screen.getByLabelText('Tu tag de Brawl Stars'), '8CGRV');
+    await user.click(screen.getByRole('button', { name: 'Cambiar tag' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Comunidad no está disponible ahora');
+    expect(screen.getByRole('button', { name: 'Cambiar tag' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Quitar tag' })).toBeEnabled();
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
   });
 });
 
