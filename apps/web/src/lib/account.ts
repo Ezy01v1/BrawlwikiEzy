@@ -4,6 +4,7 @@ import type { ApiErrorCode } from './api';
 export const DELETE_CONFIRM_WORD = 'BORRAR';
 export const SESSION_COOKIE = 'bw_session';
 export const COMMUNITY_UNAVAILABLE = 'Comunidad no está disponible ahora';
+export const NO_ACTIVE_SEASON_MESSAGE = 'No hay una temporada abierta para votar';
 export const INVALID_TAG_MESSAGE =
   'Ese tag no es válido. Los tags solo usan 0289PYLQGRJCUV (la letra O se toma como cero).';
 
@@ -30,6 +31,10 @@ export function actionErrorMessage(code: ActionErrorCode): string {
     case 'DB_UNAVAILABLE':
     case 'NETWORK':
       return COMMUNITY_UNAVAILABLE;
+    case 'RATE_LIMITED':
+      return 'Vas muy rápido. Espera un momento y vuelve a intentarlo.';
+    case 'NO_ACTIVE_SEASON':
+      return NO_ACTIVE_SEASON_MESSAGE;
     case 'CONFIRM_MISMATCH':
       return `Escribe ${DELETE_CONFIRM_WORD} para confirmar.`;
     default:

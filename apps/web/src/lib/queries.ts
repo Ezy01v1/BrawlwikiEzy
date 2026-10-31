@@ -7,6 +7,8 @@ import {
   EventSlotSchema,
   type Favorite,
   FavoriteSchema,
+  type MyTierList,
+  MyTierListSchema,
   PlayerRankingSchema,
   PlayerSchema,
   SeasonSchema,
@@ -14,7 +16,7 @@ import {
 import { headers } from 'next/headers';
 import { cache } from 'react';
 import { z } from 'zod';
-import { ApiError, apiGet, apiRequest } from './api';
+import { ApiError, type ApiResult, apiGet, apiRequest } from './api';
 import { RANKING_LIMIT } from './rankings';
 import { siteOrigin } from './site';
 
@@ -118,6 +120,17 @@ export const getCommunityTierList = cache(async (season?: number) =>
     forwardedFor: await forwardedFor(),
   }),
 );
+
+/**
+ * La tier list propia en la temporada abierta (necesita la cookie). Lanza ApiError: UNAUTHENTICATED sin sesión,
+ * NO_ACTIVE_SEASON sin temporada abierta, DB_UNAVAILABLE sin MySQL; la página decide qué mostrar.
+ */
+export const getMyTierList = cache(async (): Promise<ApiResult<MyTierList>> => {
+  const { forwardedFor, cookie } = await requestContext();
+  const r = await apiRequest('GET', '/tierlist/me', MyTierListSchema, { forwardedFor, cookie });
+  if (r === null) throw new ApiError('INTERNAL', 'Respuesta inesperada del servidor.', { status: 204 });
+  return r;
+});
 
 /** Todas las temporadas, la más nueva primero. */
 export const getSeasons = cache(async () =>

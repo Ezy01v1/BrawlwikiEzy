@@ -2,15 +2,11 @@ import type { Brawler, TierLetter, TierRow } from '@brawlwiki/shared';
 import { BrawlerCard } from '@/components/brawler/BrawlerCard';
 import { rarityLabel } from '@/lib/catalog';
 import { displayName, plural } from '@/lib/format';
+import { TIER_BADGE, UNTIERED_BADGE } from './tier-style';
 
-/** Cada tier lleva un color de los tokens del tema, sobre `surface-2` (todos ≥ 4.5:1 en claro y oscuro). */
 const SECTIONS: { key: TierLetter | null; title: string; badge: string }[] = [
-  { key: 'S', title: 'S', badge: 'border-primary text-primary' },
-  { key: 'A', title: 'A', badge: 'border-win text-win' },
-  { key: 'B', title: 'B', badge: 'border-info text-info' },
-  { key: 'C', title: 'C', badge: 'border-accent text-accent' },
-  { key: 'D', title: 'D', badge: 'border-loss text-loss' },
-  { key: null, title: 'Pocos votos', badge: 'border-border text-muted' },
+  ...(['S', 'A', 'B', 'C', 'D'] as const).map((key) => ({ key, title: key, badge: TIER_BADGE[key] })),
+  { key: null, title: 'Pocos votos', badge: UNTIERED_BADGE },
 ];
 
 interface Entry {

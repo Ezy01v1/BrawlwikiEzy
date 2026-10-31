@@ -3,12 +3,15 @@
 import { usePathname } from 'next/navigation';
 import { type ActionErrorCode, actionErrorMessage, loginHref } from '@/lib/account';
 
-/** Error de una acción de cuenta, en línea. Con la sesión vencida ofrece entrar y volver a esta página. */
-export function ActionError({ code }: { code: ActionErrorCode }) {
+/**
+ * Error de una acción de cuenta, en línea. Con la sesión vencida ofrece entrar y volver a esta página.
+ * `message` reemplaza el texto por defecto del código cuando no aplica (p. ej. INVALID_PARAM fuera de los tags).
+ */
+export function ActionError({ code, message }: { code: ActionErrorCode; message?: string }) {
   const pathname = usePathname() ?? '/';
   return (
     <div role="alert" className="text-sm text-loss">
-      <p>{actionErrorMessage(code)}</p>
+      <p>{message ?? actionErrorMessage(code)}</p>
       {code === 'UNAUTHENTICATED' && (
         // <a> y no <Link>: un prefetch de /auth/discord arrancaría el OAuth (ver AccountMenu).
         <a
