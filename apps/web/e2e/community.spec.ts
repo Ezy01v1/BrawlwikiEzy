@@ -5,6 +5,8 @@ import { expect, expectAccessible, expectNoHorizontalScroll, gotoReady, test } f
 // AUTH_MOCK=1 y AUTH_MOCK_ADMIN=1. Todos los tests usan el mismo MockUser y la misma base, así que corren en orden
 // y de a uno: el primero abre la temporada que necesitan el editor y /tierlist.
 test.skip(!process.env.TEST_DATABASE_URL, 'Sin TEST_DATABASE_URL no hay MySQL para Comunidad');
+// Dependen del primero (la temporada): si uno falla, los siguientes se omiten y un reintento corre todo desde el inicio.
+test.describe.configure({ mode: 'serial' });
 
 const SEASON = 'Temporada E2E';
 /** Los 4 brawlers de los fixtures, cada uno en un tier distinto. */
@@ -37,7 +39,9 @@ test('admin: abre "Temporada E2E" y aparece en el selector de /tierlist', async 
   await page.getByLabel('Nombre de la temporada').fill(SEASON);
   await page.getByRole('button', { name: 'Abrir temporada' }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Temporada abierta' })).toBeVisible();
-  await expect(page.getByRole('region', { name: 'Temporadas', exact: true }).getByText(SEASON)).toBeVisible();
+  // En un reintento ya hay una "Temporada E2E" (cerrada al abrir esta): se busca la activa.
+  const seasonsList = page.getByRole('region', { name: 'Temporadas', exact: true });
+  await expect(seasonsList.getByRole('listitem').filter({ hasText: SEASON }).filter({ hasText: 'Activa' })).toHaveCount(1);
 
   await gotoReady(page, '/tierlist');
   await expect(page.getByRole('heading', { level: 1, name: 'Tier list' })).toBeVisible();
