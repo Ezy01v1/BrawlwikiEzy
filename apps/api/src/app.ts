@@ -11,7 +11,7 @@ import { checkOrigin } from './http/origin';
 import { createGeneralLimiter, createUpstreamGuard } from './http/rate-limit';
 import { requestId } from './http/request-id';
 import { sendData } from './http/respond';
-import type { Logger } from './logger';
+import { httpSerializers, type Logger } from './logger';
 import { buildOpenApiDocument } from './openapi';
 import { createV1Router } from './routes/v1';
 import type { RequestContext, Services } from './services';
@@ -33,7 +33,14 @@ export function createApp(deps: AppDeps): Express {
   app.set('trust proxy', 'loopback');
   app.use(helmet());
   app.use(requestId());
-  app.use(pinoHttp({ logger: deps.logger, genReqId: (_req, res) => String(res.getHeader('X-Request-Id')) }));
+  app.use(
+    pinoHttp({
+      logger: deps.logger,
+      genReqId: (_req, res) => String(res.getHeader('X-Request-Id')),
+      // Sin query, Cookie ni Set-Cookie: llevan el token de sesión y el code/state del OAuth.
+      serializers: httpSerializers,
+    }),
+  );
 
   let contextFor = deps.contextFor;
   if (deps.rateLimit) {
