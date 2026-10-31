@@ -15,13 +15,23 @@ interface Entry {
   name: string;
 }
 
-/** Filas S→D y "Pocos votos". Los brawlers que la API devuelve pero el catálogo no conoce se omiten. */
+/**
+ * Filas S→D y "Pocos votos". Los brawlers que la API devuelve pero el catálogo no conoce se omiten; los del
+ * catálogo sin fila en la API caen en "Pocos votos", así la página nunca queda vacía.
+ */
 export function TierBoard({ rows, brawlers }: { rows: TierRow[]; brawlers: Brawler[] }) {
   const byId = new Map(brawlers.map((b) => [b.id, b]));
   const entries: Entry[] = [];
   for (const row of rows) {
     const brawler = byId.get(row.brawlerId);
     if (brawler) entries.push({ row, brawler, name: displayName(brawler.name) });
+  }
+  // Los que nadie votó (o cuyos votantes ubicaron menos de 10) van a "Pocos votos" con 0 votos, al final.
+  const ranked = new Set(rows.map((r) => r.brawlerId));
+  for (const brawler of brawlers) {
+    if (ranked.has(brawler.id)) continue;
+    const row: TierRow = { brawlerId: brawler.id, tier: null, votes: 0, average: 0 };
+    entries.push({ row, brawler, name: displayName(brawler.name) });
   }
   entries.sort((a, b) => b.row.average - a.row.average || b.row.votes - a.row.votes || a.name.localeCompare(b.name, 'es'));
 

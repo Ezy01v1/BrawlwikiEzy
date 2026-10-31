@@ -96,6 +96,27 @@ describe('página /tierlist', () => {
     expect(within(screen.getByRole('region', { name: 'Pocos votos' })).getByText('2 votos')).toBeInTheDocument();
   });
 
+  it('los brawlers del catálogo sin fila van a "Pocos votos" con 0 votos, después de los que sí tienen votos', async () => {
+    setup({ list: tierList([row(SHELLY, 'S', 7, 4.8)], { voters: 0 }) });
+    await renderPage();
+    const low = screen.getByRole('region', { name: 'Pocos votos' });
+    const names = within(low)
+      .getAllByRole('link')
+      .map((a) => a.getAttribute('href'));
+    expect(new Set(names)).toEqual(new Set(CATALOG.filter((b) => b.id !== SHELLY).map((b) => `/brawlers/${b.id}`)));
+    expect(names).not.toContain(`/brawlers/${SHELLY}`);
+    expect(names).toHaveLength(CATALOG.length - 1);
+    expect(within(low).getAllByText('0 votos')).toHaveLength(CATALOG.length - 1);
+    expect(within(low).queryByText('Sin brawlers')).not.toBeInTheDocument();
+  });
+
+  it('con filas de pocos votos, esas van antes que las de 0 votos', async () => {
+    setup({ list: tierList([row(BULL, null, 2, 2.5)]) });
+    await renderPage();
+    const links = within(screen.getByRole('region', { name: 'Pocos votos' })).getAllByRole('link');
+    expect(links[0]).toHaveAttribute('href', `/brawlers/${BULL}`);
+  });
+
   it('un brawlerId que no está en el catálogo se omite sin romper', async () => {
     setup({ list: tierList([...DEFAULT_ROWS, row(99999999, 'A', 5)]) });
     await renderPage();
