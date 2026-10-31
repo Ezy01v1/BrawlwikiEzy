@@ -234,6 +234,32 @@ describe('TierEditor', () => {
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
   });
 
+  it('sesión vencida: "Entrar con Discord" sale sin el aviso de cambios sin guardar (el borrador está a salvo)', async () => {
+    const user = userEvent.setup();
+    saveTierList.mockResolvedValue({ ok: false, code: 'UNAUTHENTICATED' });
+    renderEditor();
+    await choose(user, 'Colt, sin ubicar', 'A');
+    await user.click(save());
+    const link = within(await screen.findByRole('alert')).getByRole('link', { name: 'Entrar con Discord' });
+    // Un cierre/recarga normal con cambios sigue avisando.
+    expect(leaveIsBlocked()).toBe(true);
+    // jsdom no navega: se frena el clic después de que lo vea el editor.
+    const stop = (e: Event) => e.preventDefault();
+    window.addEventListener('click', stop);
+    try {
+      // Ctrl+clic abre otra pestaña: esta página no se va, el aviso sigue.
+      await user.keyboard('{Control>}');
+      await user.click(link);
+      await user.keyboard('{/Control}');
+      expect(leaveIsBlocked()).toBe(true);
+      await user.click(link);
+    } finally {
+      window.removeEventListener('click', stop);
+    }
+    expect(leaveIsBlocked()).toBe(false);
+    expect(JSON.parse(window.sessionStorage.getItem(DRAFT_KEY)!)).toEqual({ [SHELLY]: 5, [COLT]: 4 });
+  });
+
   it('al volver, el borrador se restaura y cuenta como cambio sin guardar', async () => {
     window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ [COLT]: 4, [BROCK]: 1 }));
     renderEditor();

@@ -65,6 +65,9 @@ export function TierEditor({ season, brawlers, initialVotes }: TierEditorProps) 
   const [pending, startTransition] = useTransition();
   // `pending` llega un render tarde: el ref frena un doble clic antes de eso.
   const busy = useRef(false);
+  // Clic en "Entrar con Discord" tras una sesión vencida: el borrador ya está en sessionStorage, no hace falta
+  // el "¿salir del sitio?" del navegador.
+  const leaving = useRef(false);
 
   const dirty = !sameVotes(votes, saved);
 
@@ -80,12 +83,21 @@ export function TierEditor({ season, brawlers, initialVotes }: TierEditorProps) 
   useEffect(() => {
     if (!dirty) return;
     const warn = (e: BeforeUnloadEvent) => {
+      if (leaving.current) return;
       e.preventDefault();
       // Navegadores viejos piden returnValue además de preventDefault.
       e.returnValue = '';
     };
+    // Si vuelve con "atrás" (bfcache), la página sigue viva: se vuelve a avisar.
+    const back = () => {
+      leaving.current = false;
+    };
     window.addEventListener('beforeunload', warn);
-    return () => window.removeEventListener('beforeunload', warn);
+    window.addEventListener('pageshow', back);
+    return () => {
+      window.removeEventListener('beforeunload', warn);
+      window.removeEventListener('pageshow', back);
+    };
   }, [dirty]);
 
   useEffect(() => {
@@ -167,7 +179,13 @@ export function TierEditor({ season, brawlers, initialVotes }: TierEditorProps) 
         </div>
         {error && (
           <div className="mt-2">
-            <ActionError code={error} {...(error === 'INVALID_PARAM' ? { message: INVALID_MESSAGE } : {})} />
+            <ActionError
+              code={error}
+              {...(error === 'INVALID_PARAM' ? { message: INVALID_MESSAGE } : {})}
+              onNavigate={() => {
+                leaving.current = true;
+              }}
+            />
           </div>
         )}
         <p role="status" className="mt-1 text-sm text-win">
