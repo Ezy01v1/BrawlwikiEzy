@@ -118,6 +118,8 @@ cat > ~/bin/brawlwiki-backup.sh <<'EOF'
 set -euo pipefail
 dir="$HOME/backups/mysql"
 file="$dir/brawlwiki-$(date +%F).sql.gz"
+# Si mysqldump o gzip fallan, no queda un .tmp a medias para siempre (el find de abajo solo borra .sql.gz).
+trap 'rm -f "$file.tmp"' ERR
 # --single-transaction: copia consistente sin bloquear las tablas InnoDB.
 # --no-tablespaces: el usuario brawlwiki no tiene el permiso global PROCESS.
 mysqldump --defaults-extra-file="$HOME/.brawlwiki-backup.cnf" \
@@ -141,13 +143,17 @@ Los backups quedan en el mismo VPS: si el disco se pierde, se pierden con él. C
 
 ```bash
 pm2 stop brawlwiki-api
+# Como root: base vacía antes de cargar el dump (el GRANT del usuario brawlwiki se conserva).
+sudo mysql -e "DROP DATABASE brawlwiki; CREATE DATABASE brawlwiki CHARACTER SET utf8mb4;"
 gunzip -c ~/backups/mysql/brawlwiki-AAAA-MM-DD.sql.gz \
   | mysql --defaults-extra-file="$HOME/.brawlwiki-backup.cnf" brawlwiki
 cd ~/brawlwiki && npm run db:migrate -w @brawlwiki/api   # si el código es más nuevo que el backup
 pm2 start brawlwiki-api
 ```
 
-El dump reemplaza cada tabla (incluida la de migraciones aplicadas, `__drizzle_migrations`), así que la base vuelve exactamente al estado de ese día: lo que se guardó después se pierde. Las sesiones también vuelven a ese día.
+El `DROP DATABASE` previo hace falta: el dump solo reemplaza las tablas que contiene (incluida la de migraciones aplicadas, `__drizzle_migrations`). Las que creó una migración posterior al backup sobrevivirían a la restauración mientras `__drizzle_migrations` vuelve a ese día, y el `db:migrate` volvería a aplicar esa migración y fallaría en su `CREATE TABLE` (la tabla ya existe).
+
+Así la base vuelve exactamente al estado de ese día: lo que se guardó después se pierde. Las sesiones también vuelven a ese día.
 
 ## Actualizar
 
