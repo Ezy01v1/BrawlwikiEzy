@@ -43,7 +43,7 @@ export default function AboutPage() {
       </p>
       <p className={`mt-2 ${P}`}>
         La sesión se mantiene con una cookie, <code>bw_session</code>, que el navegador no deja leer a ningún script
-        (HttpOnly) y que vence a los 30 días.
+        (HttpOnly) y que vence tras 30 días sin entrar al sitio.
       </p>
       <p className={`mt-2 ${P}`}>
         La tier list de la comunidad solo muestra resultados agregados: nadie ve cómo votaste tú. Si borras tu cuenta

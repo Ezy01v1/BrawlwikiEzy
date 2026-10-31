@@ -24,7 +24,7 @@ describe('Acerca de', () => {
     expect(screen.getByText(/tu id, tu nombre y tu avatar de Discord, el tag que vincules, tus favoritos y tus votos/)).toBeInTheDocument();
     expect(screen.getByText(/No guardamos tu email ni el token de Discord/)).toBeInTheDocument();
     expect(screen.getByText('bw_session')).toBeInTheDocument();
-    expect(screen.getByText(/vence a los 30 días/)).toBeInTheDocument();
+    expect(screen.getByText(/vence tras 30 días sin entrar al sitio/)).toBeInTheDocument();
     expect(screen.getByText(/solo muestra resultados agregados/)).toBeInTheDocument();
     expect(screen.getByText(/se elimina todo lo que guardamos de ella/)).toBeInTheDocument();
   });
