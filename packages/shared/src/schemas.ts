@@ -14,6 +14,10 @@ export const ErrorCodeSchema = z.enum([
   'UPSTREAM_MAINTENANCE',
   'UPSTREAM_UNAVAILABLE',
   'INTERNAL',
+  'UNAUTHENTICATED',
+  'FORBIDDEN',
+  'NO_ACTIVE_SEASON',
+  'DB_UNAVAILABLE',
 ]);
 export type ErrorCode = z.infer<typeof ErrorCodeSchema>;
 
@@ -188,5 +192,96 @@ export const HealthSchema = z.object({
   status: z.literal('ok'),
   cache: z.enum(['memory', 'redis']),
   supercell: z.enum(['ok', 'cooldown', 'unauthorized', 'mock']),
+  db: z.enum(['ok', 'down', 'disabled']),
 });
 export type Health = z.infer<typeof HealthSchema>;
+
+export const TIER_VALUES = { S: 5, A: 4, B: 3, C: 2, D: 1 } as const;
+export const TierLetterSchema = z.enum(['S', 'A', 'B', 'C', 'D']);
+export type TierLetter = z.infer<typeof TierLetterSchema>;
+
+export const UserSchema = z.object({
+  id: z.number(),
+  username: z.string(),
+  avatarUrl: z.string().nullable(),
+  playerTag: z.string().nullable(),
+  isAdmin: z.boolean(),
+});
+export type User = z.infer<typeof UserSchema>;
+
+export const MeSchema = z.object({ user: UserSchema.nullable() });
+export type Me = z.infer<typeof MeSchema>;
+
+export const FavoriteKindSchema = z.enum(['player', 'club']);
+
+export const FavoriteSchema = z.object({
+  kind: FavoriteKindSchema,
+  tag: z.string(),
+  name: z.string(),
+  createdAt: z.string(),
+});
+export type Favorite = z.infer<typeof FavoriteSchema>;
+
+export const SeasonSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  startedAt: z.string(),
+  endedAt: z.string().nullable(),
+});
+export type Season = z.infer<typeof SeasonSchema>;
+
+export const TierRowSchema = z.object({
+  brawlerId: z.number(),
+  tier: TierLetterSchema.nullable(),
+  average: z.number(),
+  votes: z.number(),
+});
+export type TierRow = z.infer<typeof TierRowSchema>;
+
+export const CommunityTierListSchema = z.object({
+  season: SeasonSchema,
+  voters: z.number(),
+  rows: z.array(TierRowSchema),
+});
+export type CommunityTierList = z.infer<typeof CommunityTierListSchema>;
+
+export const MyTierListSchema = z.object({
+  season: SeasonSchema,
+  votes: z.array(
+    z.object({ brawlerId: z.number(), tier: z.number().int().min(1).max(5) }),
+  ),
+});
+export type MyTierList = z.infer<typeof MyTierListSchema>;
+
+export const SaveTierListBodySchema = z
+  .object({
+    votes: z
+      .array(
+        z.object({
+          brawlerId: z.number().int().positive(),
+          tier: z.number().int().min(1).max(5),
+        }),
+      )
+      .max(200),
+  })
+  .superRefine((body, ctx) => {
+    const seen = new Set<number>();
+    for (const [i, v] of body.votes.entries()) {
+      if (seen.has(v.brawlerId)) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'brawlerId repetido',
+          path: ['votes', i, 'brawlerId'],
+        });
+      }
+      seen.add(v.brawlerId);
+    }
+  });
+export type SaveTierListBody = z.infer<typeof SaveTierListBodySchema>;
+
+export const ImportFavoritesBodySchema = z.object({
+  items: z
+    .array(z.object({ kind: FavoriteKindSchema, tag: z.string(), name: z.string() }))
+    .max(100),
+});
+export type ImportFavoritesBody = z.infer<typeof ImportFavoritesBodySchema>;

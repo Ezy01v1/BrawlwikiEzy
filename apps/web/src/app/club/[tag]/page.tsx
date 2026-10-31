@@ -8,6 +8,7 @@ import { RecordVisit } from '@/components/search/RecordVisit';
 import { ApiErrorView } from '@/components/states/ApiErrorView';
 import { StaleBadge } from '@/components/states/StaleBadge';
 import { ButtonLink } from '@/components/ui/Button';
+import { favoriteState } from '@/lib/account-favorites';
 import { attempt } from '@/lib/attempt';
 import { CLUB_CAPACITY } from '@/lib/clubs';
 import { formatNumber } from '@/lib/format';
@@ -34,7 +35,7 @@ export default async function ClubPage({ params }: PageProps<'/club/[tag]'>) {
   if (!tag) return <InvalidTag target="club" />;
   if (tag !== raw) redirect(`/club/${tag}`);
 
-  const r = await attempt(getClub(tag));
+  const [r, favorite] = await Promise.all([attempt(getClub(tag)), favoriteState('club', tag)]);
   if (!r.ok) {
     if (r.error.code === 'NOT_FOUND') notFound();
     if (r.error.code === 'INVALID_TAG') return <InvalidTag target="club" />;
@@ -45,7 +46,7 @@ export default async function ClubPage({ params }: PageProps<'/club/[tag]'>) {
   return (
     <>
       <RecordVisit entry={{ type: 'club', tag: club.tag, name: club.name }} />
-      <ClubHeader club={club} />
+      <ClubHeader club={club} favorite={favorite} />
       <StaleBadge meta={meta} />
       <div className="mt-4 grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start">
         <div className="min-w-0">

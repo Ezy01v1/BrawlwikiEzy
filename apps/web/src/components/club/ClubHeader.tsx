@@ -1,9 +1,10 @@
 import type { Club } from '@brawlwiki/shared';
 import { FavoriteButton } from '@/components/search/FavoriteButton';
 import { GameImage } from '@/components/ui/GameImage';
+import type { FavoriteState } from '@/lib/account-favorites';
 import { clubTypeLabel } from '@/lib/clubs';
 
-export function ClubHeader({ club }: { club: Club }) {
+export function ClubHeader({ club, favorite }: { club: Club; favorite: FavoriteState }) {
   return (
     <header className="mt-4 flex items-center gap-3">
       <GameImage
@@ -19,7 +20,7 @@ export function ClubHeader({ club }: { club: Club }) {
           #{club.tag} · {clubTypeLabel(club.type)}
         </p>
       </div>
-      <FavoriteButton entry={{ type: 'club', tag: club.tag, name: club.name }} />
+      <FavoriteButton entry={{ type: 'club', tag: club.tag, name: club.name }} {...favorite} />
     </header>
   );
 }

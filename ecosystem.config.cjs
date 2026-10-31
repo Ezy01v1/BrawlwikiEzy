@@ -1,5 +1,8 @@
 // PM2: `pm2 start ecosystem.config.cjs` desde la raíz del repo, después de `npm ci` y del build de la web.
 // Las variables secretas (SUPERCELL_API_KEY, REDIS_URL) van en apps/api/.env, no acá.
+// Comunidad (también en apps/api/.env; ver deploy/README.md): DATABASE_URL, DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET,
+// PUBLIC_SITE_URL y ADMIN_DISCORD_IDS. Nunca AUTH_MOCK/AUTH_MOCK_ADMIN: con NODE_ENV=production la API no arranca.
+// Antes de `pm2 reload`: `npm run db:migrate -w @brawlwiki/api`. La web toma NEXT_PUBLIC_SITE_URL del build, no de acá.
 module.exports = {
   apps: [
     {

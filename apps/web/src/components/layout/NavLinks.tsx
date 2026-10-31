@@ -7,12 +7,14 @@ export const NAV_ITEMS = [
   { href: '/', label: 'Inicio', icon: '🏠' },
   { href: '/rankings', label: 'Rankings', icon: '🏆' },
   { href: '/brawlers', label: 'Brawlers', icon: '🥊' },
-  { href: '/clubes/comparar', label: 'Clubes', icon: '🛡️' },
+  { href: '/tierlist', label: 'Tier list', icon: '📊' },
 ] as const;
+
+export const CLUBS_HREF = '/clubes/comparar';
 
 export function isActive(pathname: string, href: string): boolean {
   if (href === '/') return pathname === '/';
-  if (href === '/clubes/comparar') {
+  if (href === CLUBS_HREF) {
     return pathname === '/clubes' || pathname.startsWith('/clubes/') || pathname.startsWith('/club/');
   }
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -67,7 +69,24 @@ export function NavLinks({ variant }: { variant: 'bottom' | 'top' }) {
             </li>
           );
         })}
+        <li>
+          <ClubsLink />
+        </li>
       </ul>
     </nav>
+  );
+}
+
+/** Clubes salió del menú inferior (lo ocupa Tier list): queda como link de texto en el header, en todos los tamaños. */
+export function ClubsLink({ className = '' }: { className?: string }) {
+  const active = isActive(usePathname() ?? '/', CLUBS_HREF);
+  return (
+    <Link
+      href={CLUBS_HREF}
+      aria-current={active ? 'page' : undefined}
+      className={`inline-flex min-h-11 shrink-0 items-center rounded-chip px-2 text-sm font-semibold md:px-3 ${active ? 'bg-surface-2 text-primary' : 'text-muted hover:text-fg'} ${className}`}
+    >
+      Clubes
+    </Link>
   );
 }

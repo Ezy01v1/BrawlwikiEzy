@@ -3,20 +3,43 @@ import {
   BrawlerSchema,
   ClubRankingSchema,
   ClubSchema,
+  CommunityTierListSchema,
   EventSlotSchema,
+  type Favorite,
+  FavoriteSchema,
+  type MyTierList,
+  MyTierListSchema,
   PlayerRankingSchema,
   PlayerSchema,
+  SeasonSchema,
 } from '@brawlwiki/shared';
 import { headers } from 'next/headers';
 import { cache } from 'react';
 import { z } from 'zod';
-import { apiGet } from './api';
+import { ApiError, type ApiResult, apiGet, apiRequest } from './api';
 import { RANKING_LIMIT } from './rankings';
+import { siteOrigin } from './site';
 
-/** Reenvía la IP del usuario tal cual llegó (Nginx la agrega); Express confía solo en loopback. */
-async function forwardedFor(): Promise<string | null> {
+export interface RequestContext {
+  /** IP del usuario tal cual llegó (Nginx la agrega); Express confía solo en loopback. */
+  forwardedFor: string | null;
+  /** Header `Cookie` del navegador, tal cual (la API solo lee `bw_session`). */
+  cookie: string | null;
+  /** Origin del sitio público, para los requests que modifican (la API lo exige). */
+  origin: string;
+}
+
+export async function requestContext(): Promise<RequestContext> {
   const h = await headers();
-  return h.get('x-forwarded-for') ?? h.get('x-real-ip');
+  return {
+    forwardedFor: h.get('x-forwarded-for') ?? h.get('x-real-ip'),
+    cookie: h.get('cookie'),
+    origin: siteOrigin(),
+  };
+}
+
+async function forwardedFor(): Promise<string | null> {
+  return (await requestContext()).forwardedFor;
 }
 
 const enc = encodeURIComponent;
@@ -62,8 +85,54 @@ export const getClubRankings = cache(async (region: string, limit: number = RANK
   }),
 );
 
+/** Corto como el de la sesión: la home y los perfiles lo esperan, y no pueden colgarse si MySQL anda lento. */
+export const FAVORITES_TIMEOUT_MS = 1500;
+
+/**
+ * Favoritos de la cuenta (el más reciente primero). Solo con sesión: quien llama mira `getSession()` antes.
+ * Si falla devuelve `[]`: los favoritos no pueden tirar la home ni un perfil.
+ */
+export const getFavorites = cache(async (): Promise<Favorite[]> => {
+  const { forwardedFor, cookie } = await requestContext();
+  try {
+    const r = await apiRequest('GET', '/me/favorites', z.array(FavoriteSchema), {
+      forwardedFor,
+      cookie,
+      timeoutMs: FAVORITES_TIMEOUT_MS,
+    });
+    return r?.data ?? [];
+  } catch (e) {
+    if (!(e instanceof ApiError)) throw e;
+    console.error('[favoritos] GET /me/favorites falló', e.code, e.status);
+    return [];
+  }
+});
+
 export const getBrawlerRankings = cache(async (brawlerId: number, region: string, limit: number = RANKING_LIMIT) =>
   apiGet(`/rankings/brawlers/${brawlerId}${rankingQuery(region, limit)}`, z.array(PlayerRankingSchema), {
     forwardedFor: await forwardedFor(),
   }),
+);
+
+/** Tier list de la comunidad (pública). Sin `season` la API devuelve la temporada abierta. */
+export const getCommunityTierList = cache(async (season?: number) =>
+  apiGet(season === undefined ? '/tierlist' : `/tierlist?season=${season}`, CommunityTierListSchema, {
+    forwardedFor: await forwardedFor(),
+  }),
+);
+
+/**
+ * La tier list propia en la temporada abierta (necesita la cookie). Lanza ApiError: UNAUTHENTICATED sin sesión,
+ * NO_ACTIVE_SEASON sin temporada abierta, DB_UNAVAILABLE sin MySQL; la página decide qué mostrar.
+ */
+export const getMyTierList = cache(async (): Promise<ApiResult<MyTierList>> => {
+  const { forwardedFor, cookie } = await requestContext();
+  const r = await apiRequest('GET', '/tierlist/me', MyTierListSchema, { forwardedFor, cookie });
+  if (r === null) throw new ApiError('INTERNAL', 'Respuesta inesperada del servidor.', { status: 204 });
+  return r;
+});
+
+/** Todas las temporadas, la más nueva primero. */
+export const getSeasons = cache(async () =>
+  apiGet('/seasons', z.array(SeasonSchema), { forwardedFor: await forwardedFor() }),
 );

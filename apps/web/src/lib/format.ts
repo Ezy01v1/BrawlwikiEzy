@@ -14,6 +14,15 @@ export function formatAge(seconds: number): string {
   return `${Math.floor(h / 24)} d`;
 }
 
+const dateFormat = new Intl.DateTimeFormat('es-MX', { timeZone: 'UTC' });
+
+/** Fecha corta en es-MX ("1/10/2026"); en UTC para que servidor y navegador coincidan. */
+export function formatDate(iso: string): string {
+  // `SeasonSchema.startedAt` es un string sin validar como fecha: una fila mala no debe tumbar la página.
+  if (Number.isNaN(Date.parse(iso))) return '—';
+  return dateFormat.format(new Date(iso));
+}
+
 export function timeAgo(iso: string, now: number = Date.now()): string {
   return `hace ${formatAge((now - Date.parse(iso)) / 1000)}`;
 }

@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev -p 3000",
+    "dev": "next dev -p 3200",
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
@@ -29,6 +29,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
     "jsdom": "^30.1.1",
+    "mysql2": "^3.24.6",
     "tailwindcss": "^4.3.3"
   }
 }

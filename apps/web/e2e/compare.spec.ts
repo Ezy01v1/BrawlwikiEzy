@@ -1,8 +1,8 @@
 import { expect, expectAccessible, test } from './fixtures';
 
-test('desde la navegación inferior: comparar dos clubes con el formulario', async ({ page }) => {
+test('desde el header: comparar dos clubes con el formulario', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('navigation', { name: 'Navegación inferior' }).getByRole('link', { name: /Clubes/ }).click();
+  await page.getByRole('banner').getByRole('link', { name: 'Clubes' }).click();
   await expect(page).toHaveURL('/clubes/comparar');
   await expect(page.getByRole('heading', { level: 1, name: 'Clubes' })).toBeVisible();
   await page.getByLabel('Club A').fill('2yplq');

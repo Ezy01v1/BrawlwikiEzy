@@ -23,3 +23,14 @@ describe('createHealth', () => {
     expect((await health()).supercell).toBe('ok');
   });
 });
+
+describe('createHealth db', () => {
+  const base = () => ({ cache: createMemoryCache(), supercell: live(false), isCoolingDown: async () => false });
+  it('sin db → disabled', async () => {
+    expect((await createHealth(base())()).db).toBe('disabled');
+  });
+  it('ping false → down, true → ok', async () => {
+    expect((await createHealth({ ...base(), db: { ping: async () => false } })()).db).toBe('down');
+    expect((await createHealth({ ...base(), db: { ping: async () => true } })()).db).toBe('ok');
+  });
+});

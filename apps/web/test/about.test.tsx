@@ -18,6 +18,17 @@ describe('Acerca de', () => {
     );
   });
 
+  it('la sección Cuentas dice qué se guarda, qué no y que borrar la cuenta lo elimina todo', () => {
+    render(<AboutPage />);
+    expect(screen.getByRole('heading', { name: 'Cuentas' })).toBeInTheDocument();
+    expect(screen.getByText(/tu id, tu nombre y tu avatar de Discord, el tag que vincules, tus favoritos y tus votos/)).toBeInTheDocument();
+    expect(screen.getByText(/No guardamos tu email ni el token de Discord/)).toBeInTheDocument();
+    expect(screen.getByText('bw_session')).toBeInTheDocument();
+    expect(screen.getByText(/vence a los 30 días/)).toBeInTheDocument();
+    expect(screen.getByText(/solo muestra resultados agregados/)).toBeInTheDocument();
+    expect(screen.getByText(/se elimina todo lo que guardamos de ella/)).toBeInTheDocument();
+  });
+
   it('el footer enlaza a la página Acerca de', () => {
     render(<Footer />);
     expect(screen.getByText(DISCLAIMER)).toBeInTheDocument();

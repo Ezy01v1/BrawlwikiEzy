@@ -144,6 +144,6 @@ describe('/api/v1 rankings, brawlers y eventos', () => {
   it('health refleja caché y modo de Supercell', async () => {
     const { app } = createTestApp();
     const res = await request(app).get('/api/v1/health');
-    expect(res.body.data).toEqual({ status: 'ok', cache: 'memory', supercell: 'mock' });
+    expect(res.body.data).toEqual({ status: 'ok', cache: 'memory', supercell: 'mock', db: 'disabled' });
   });
 });

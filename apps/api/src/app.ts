@@ -3,20 +3,26 @@ import express, { type Express, type Request } from 'express';
 import { ipKeyGenerator, type Store } from 'express-rate-limit';
 import helmet from 'helmet';
 import { pinoHttp } from 'pino-http';
+import { type CommunityDeps, createCommunityRouter } from './community/router';
+import { effectiveAdminIds } from './config';
+import { loadUser } from './http/auth';
 import { errorHandler, notFoundHandler } from './http/error-handler';
+import { checkOrigin } from './http/origin';
 import { createGeneralLimiter, createUpstreamGuard } from './http/rate-limit';
 import { requestId } from './http/request-id';
 import { sendData } from './http/respond';
-import type { Logger } from './logger';
+import { httpSerializers, type Logger } from './logger';
 import { buildOpenApiDocument } from './openapi';
 import { createV1Router } from './routes/v1';
 import type { RequestContext, Services } from './services';
+import './types';
 
 export interface AppDeps {
   logger: Logger;
   health: () => Health | Promise<Health>;
   services?: Services;
   contextFor?: (req: Request) => RequestContext;
+  community?: CommunityDeps;
   rateLimit?: { generalPerMinute: number; upstreamPerMinute: number; store?: Store };
 }
 
@@ -27,7 +33,14 @@ export function createApp(deps: AppDeps): Express {
   app.set('trust proxy', 'loopback');
   app.use(helmet());
   app.use(requestId());
-  app.use(pinoHttp({ logger: deps.logger, genReqId: (_req, res) => String(res.getHeader('X-Request-Id')) }));
+  app.use(
+    pinoHttp({
+      logger: deps.logger,
+      genReqId: (_req, res) => String(res.getHeader('X-Request-Id')),
+      // Sin query, Cookie ni Set-Cookie: llevan el token de sesión y el code/state del OAuth.
+      serializers: httpSerializers,
+    }),
+  );
 
   let contextFor = deps.contextFor;
   if (deps.rateLimit) {
@@ -43,6 +56,14 @@ export function createApp(deps: AppDeps): Express {
     res.json(buildOpenApiDocument());
   });
   if (deps.services) app.use('/api/v1', createV1Router(deps.services, contextFor));
+  if (deps.community) {
+    // Montado después de la v1: las rutas públicas no pasan por sesión ni chequeo de Origin.
+    const { config, sessions } = deps.community;
+    const community = express.Router();
+    community.use(checkOrigin(config.publicSiteUrl), loadUser(sessions, effectiveAdminIds(config)));
+    community.use(createCommunityRouter(deps.community));
+    app.use('/api/v1', community);
+  }
 
   app.use(notFoundHandler());
   app.use(errorHandler(deps.logger));

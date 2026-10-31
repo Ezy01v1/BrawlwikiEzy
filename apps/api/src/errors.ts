@@ -9,6 +9,10 @@ const STATUS: Record<ErrorCode, number> = {
   UPSTREAM_MAINTENANCE: 503,
   UPSTREAM_UNAVAILABLE: 503,
   INTERNAL: 500,
+  UNAUTHENTICATED: 401,
+  FORBIDDEN: 403,
+  NO_ACTIVE_SEASON: 409,
+  DB_UNAVAILABLE: 503,
 };
 
 const MESSAGES: Record<ErrorCode, string> = {
@@ -20,6 +24,10 @@ const MESSAGES: Record<ErrorCode, string> = {
   UPSTREAM_MAINTENANCE: 'Brawl Stars está en mantenimiento. Vuelve en un rato.',
   UPSTREAM_UNAVAILABLE: 'No pudimos contactar a Supercell. Intenta de nuevo.',
   INTERNAL: 'Ocurrió un error inesperado.',
+  UNAUTHENTICATED: 'Inicia sesión para continuar.',
+  FORBIDDEN: 'No tienes permiso para hacer esto.',
+  NO_ACTIVE_SEASON: 'No hay una temporada abierta para votar.',
+  DB_UNAVAILABLE: 'Comunidad no está disponible ahora. Intenta en un rato.',
 };
 
 export const UPSTREAM_CODES: ReadonlySet<ErrorCode> = new Set<ErrorCode>([

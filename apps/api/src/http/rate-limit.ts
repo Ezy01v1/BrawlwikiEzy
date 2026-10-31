@@ -1,8 +1,18 @@
-import type { Request, RequestHandler } from 'express';
+import type { RequestHandler } from 'express';
 import { rateLimit, type Store } from 'express-rate-limit';
 import { AppError } from '../errors';
 
 const WINDOW_MS = 60_000;
+
+/** 429 con el envoltorio de la API; `retryAfter` sale del resetTime que deja express-rate-limit en el request. */
+function rateLimitedHandler(property: string): RequestHandler {
+  return (req, _res, next) => {
+    const info = (req as unknown as Record<string, { resetTime?: Date } | undefined>)[property];
+    const reset = info?.resetTime;
+    const retryAfter = reset ? Math.max(1, Math.ceil((reset.getTime() - Date.now()) / 1000)) : 60;
+    next(new AppError('RATE_LIMITED', undefined, { retryAfter }));
+  };
+}
 
 export function createGeneralLimiter(opts: { perMinute: number; store?: Store }): RequestHandler {
   return rateLimit({
@@ -13,11 +23,28 @@ export function createGeneralLimiter(opts: { perMinute: number; store?: Store })
     passOnStoreError: true,
     ...(opts.store ? { store: opts.store } : {}),
     skip: (req) => req.path === '/api/v1/health',
-    handler: (req, _res, next) => {
-      const reset = (req as Request & { rateLimit?: { resetTime?: Date } }).rateLimit?.resetTime;
-      const retryAfter = reset ? Math.max(1, Math.ceil((reset.getTime() - Date.now()) / 1000)) : 60;
-      next(new AppError('RATE_LIMITED', undefined, { retryAfter }));
+    handler: rateLimitedHandler('rateLimit'),
+  });
+}
+
+/**
+ * Límite por usuario (va después de requireUser). Cada llamada crea su propio contador en memoria:
+ * una instancia por app. No escribe cabeceras RateLimit para no pisar las del limitador general.
+ */
+export function createUserLimiter(opts: { name: string; perMinute: number }): RequestHandler {
+  const property = `${opts.name}RateLimit`;
+  return rateLimit({
+    windowMs: WINDOW_MS,
+    limit: opts.perMinute,
+    standardHeaders: false,
+    legacyHeaders: false,
+    passOnStoreError: true,
+    requestPropertyName: property,
+    keyGenerator: (req) => {
+      if (!req.user) throw new AppError('UNAUTHENTICATED');
+      return `${opts.name}:${req.user.id}`;
     },
+    handler: rateLimitedHandler(property),
   });
 }
 

@@ -9,14 +9,20 @@ const SOURCES = {
   favorites: { get: getFavorites, title: 'FAVORITOS', id: 'favoritos' },
 } as const;
 
-export function SavedList({ source }: { source: keyof typeof SOURCES }) {
-  const [items, setItems] = useState<SavedEntry[]>([]);
+/**
+ * Lista guardada en `localStorage`. Con `items` (los favoritos de la cuenta, que manda el servidor con sesión)
+ * muestra esos y no lee nada local.
+ */
+export function SavedList({ source, items: fromServer }: { source: keyof typeof SOURCES; items?: SavedEntry[] }) {
+  const [local, setLocal] = useState<SavedEntry[]>([]);
   const { get, title, id } = SOURCES[source];
+  const readLocal = fromServer === undefined;
 
   useEffect(() => {
-    setItems(get());
-  }, [get]);
+    if (readLocal) setLocal(get());
+  }, [get, readLocal]);
 
+  const items = fromServer ?? local;
   if (items.length === 0) return null;
   return (
     <section aria-labelledby={id} className="my-6">

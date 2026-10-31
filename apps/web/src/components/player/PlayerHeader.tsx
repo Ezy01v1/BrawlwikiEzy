@@ -2,8 +2,9 @@ import type { Player } from '@brawlwiki/shared';
 import Link from 'next/link';
 import { FavoriteButton } from '@/components/search/FavoriteButton';
 import { GameImage } from '@/components/ui/GameImage';
+import type { FavoriteState } from '@/lib/account-favorites';
 
-export function PlayerHeader({ player }: { player: Player }) {
+export function PlayerHeader({ player, favorite }: { player: Player; favorite: FavoriteState }) {
   return (
     <header className="mt-4 flex items-center gap-3">
       <GameImage
@@ -29,7 +30,7 @@ export function PlayerHeader({ player }: { player: Player }) {
           )}
         </p>
       </div>
-      <FavoriteButton entry={{ type: 'player', tag: player.tag, name: player.name }} />
+      <FavoriteButton entry={{ type: 'player', tag: player.tag, name: player.name }} {...favorite} />
     </header>
   );
 }
