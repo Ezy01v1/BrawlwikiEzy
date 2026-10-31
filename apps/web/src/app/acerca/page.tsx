@@ -27,8 +27,28 @@ export default function AboutPage() {
 
       <h2 className={H2}>Tus datos</h2>
       <p className={P}>
-        No hay cuentas. Tus favoritos y tus búsquedas recientes se guardan solo en este navegador y puedes borrarlos
+        Sin cuenta, tus favoritos y tus búsquedas recientes se guardan solo en este navegador y puedes borrarlos
         limpiando los datos del sitio.
+      </p>
+
+      <h2 className={H2}>Cuentas</h2>
+      <p className={P}>
+        La cuenta es opcional y se crea al entrar con Discord. Sirve para guardar tus favoritos, vincular tu perfil de
+        Brawl Stars y votar en la tier list de la comunidad.
+      </p>
+      <p className={`mt-2 ${P}`}>
+        De tu cuenta guardamos tu id, tu nombre y tu avatar de Discord, el tag que vincules, tus favoritos y tus votos.
+        No guardamos tu email ni el token de Discord: al entrar solo pedimos ver tu perfil básico, que no incluye el
+        email.
+      </p>
+      <p className={`mt-2 ${P}`}>
+        La sesión se mantiene con una cookie, <code>bw_session</code>, que el navegador no deja leer a ningún script
+        (HttpOnly) y que vence a los 30 días.
+      </p>
+      <p className={`mt-2 ${P}`}>
+        La tier list de la comunidad solo muestra resultados agregados: nadie ve cómo votaste tú. Si borras tu cuenta
+        desde Mi cuenta, se elimina todo lo que guardamos de ella, incluidos tus favoritos y tus votos. Las copias de
+        seguridad diarias se guardan 7 días, así que en ese plazo tus datos desaparecen también de ellas.
       </p>
 
       <h2 className={H2}>Aviso legal</h2>
