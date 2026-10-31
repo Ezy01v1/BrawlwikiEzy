@@ -35,6 +35,8 @@ export function actionErrorMessage(code: ActionErrorCode): string {
       return 'Vas muy rápido. Espera un momento y vuelve a intentarlo.';
     case 'NO_ACTIVE_SEASON':
       return NO_ACTIVE_SEASON_MESSAGE;
+    case 'FORBIDDEN':
+      return 'No tienes permiso para hacer esto.';
     case 'CONFIRM_MISMATCH':
       return `Escribe ${DELETE_CONFIRM_WORD} para confirmar.`;
     default:
