@@ -75,7 +75,7 @@ function fakeDeps(env: Record<string, string> = {}, fetchImpl = fakeFetch().impl
       return id;
     },
   };
-  return { app: createApp({ logger: createLogger('silent'), health: () => ({}) as never, community }), f };
+  return { app: createApp({ logger: createLogger('silent'), health: () => ({}) as never, community }), f, community };
 }
 
 function setCookieHeader(res: request.Response, name: string): string | undefined {
@@ -98,6 +98,14 @@ async function startLogin(app: App, next = '/tierlist') {
 describe('safeNext', () => {
   it('rechaza externas y acepta rutas locales', () => {
     for (const v of ['//evil.com', 'https://x', '/\\evil', '', undefined, 42, ['/a']]) expect(safeNext(v)).toBe('/');
+    expect(safeNext('/tierlist?x=1')).toBe('/tierlist?x=1');
+  });
+
+  it('rechaza controles, espacios, barras invertidas y valores de más de 512 caracteres', () => {
+    for (const v of ['/a\tb', '/a\nb', '/a\rb', '/a b', '/a\\b', '/a\u0000', '/a\u007f', `/${'a'.repeat(512)}`]) {
+      expect(safeNext(v), JSON.stringify(v)).toBe('/');
+    }
+    expect(safeNext(`/${'a'.repeat(511)}`)).toBe(`/${'a'.repeat(511)}`);
     expect(safeNext('/tierlist?x=1')).toBe('/tierlist?x=1');
   });
 });
@@ -170,6 +178,26 @@ describe('rutas /auth', () => {
     expect(res.headers.location).toBe('/?login=error');
     expect(setCookieHeader(res, 'bw_session')).toBeUndefined();
     expect(f.sessions.size).toBe(0);
+  });
+
+  it('state inválido o vencido se loguea en warn solo con el motivo (sin state ni code)', async () => {
+    const lines: string[] = [];
+    const logger = createLogger('warn', { write: (x: string) => void lines.push(x) });
+    const community = fakeDeps().community;
+    const app = createApp({ logger, health: () => ({}) as never, community });
+    const { oauth } = await startLogin(app, '/');
+    await request(app)
+      .get('/api/v1/auth/discord/callback?code=CODIGOSECRETO&state=STATEAJENO')
+      .set('Cookie', `${OAUTH_COOKIE}=${oauth}`)
+      .expect(302);
+    await request(app).get('/api/v1/auth/discord/callback?code=CODIGOSECRETO&state=STATEAJENO').expect(302);
+    const entries = lines.map((l) => JSON.parse(l) as Record<string, unknown>);
+    const warns = entries.filter((e) => e.level === 40 && e.msg === 'login con Discord rechazado');
+    expect(warns.map((e) => e.reason)).toEqual(['state no coincide', 'sin cookie de OAuth (vencida o ausente)']);
+    const logs = lines.join('\n');
+    expect(logs).not.toContain('CODIGOSECRETO');
+    expect(logs).not.toContain('STATEAJENO');
+    expect(logs).not.toContain(oauth);
   });
 
   it('callback sin cookie o con error de Discord → login=error (con & si next tiene query)', async () => {

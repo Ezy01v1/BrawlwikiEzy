@@ -8,10 +8,16 @@ import { parseCookies, requireUser, SESSION_COOKIE, sessionCookieOptions } from 
 export const OAUTH_COOKIE = 'bw_oauth';
 const OAUTH_TTL_MS = 10 * 60 * 1000;
 
-/** `next` válido: empieza con `/` y no con `//` ni `/\`; si no, `/`. */
+/** Más largo desbordaría la cookie `bw_oauth` (4 KB) y el login fallaría. */
+const NEXT_MAX_LENGTH = 512;
+
+/**
+ * `next` válido: empieza con `/` y no con `//`, sin controles, espacios ni `\` (los navegadores tratan `\` como `/`)
+ * y de hasta 512 caracteres; si no, `/`.
+ */
 export function safeNext(value: unknown): string {
-  if (typeof value !== 'string' || !value.startsWith('/')) return '/';
-  if (value.startsWith('//') || value.startsWith('/\\')) return '/';
+  if (typeof value !== 'string' || !value.startsWith('/') || value.startsWith('//')) return '/';
+  if (value.length > NEXT_MAX_LENGTH || /[\x00-\x20\x7f\\]/.test(value)) return '/';
   return value;
 }
 
@@ -67,6 +73,13 @@ export function createAuthRouter(deps: CommunityDeps): Router {
     const next = saved?.next ?? '/';
     const { state, code } = req.query;
     if (!saved || typeof state !== 'string' || state !== saved.state || typeof code !== 'string' || !code) {
+      const reason = !saved
+        ? 'sin cookie de OAuth (vencida o ausente)'
+        : state !== saved.state
+          ? 'state no coincide'
+          : 'sin code (Discord devolvió un error o se canceló)';
+      // Solo el motivo: el state, el code y la cookie no van a los logs.
+      req.log?.warn({ reason }, 'login con Discord rechazado');
       res.redirect(302, withLoginError(next));
       return;
     }
