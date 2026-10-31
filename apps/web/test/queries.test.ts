@@ -51,4 +51,15 @@ describe('rutas de las queries nuevas', () => {
     await q.getBrawlerRankings(16000001, 'ES', 10);
     expect(apiGet.mock.calls.at(-1)![0]).toBe('/rankings/brawlers/16000001?region=ES&limit=10');
   });
+
+  it('arma las URLs de la tier list y las temporadas', async () => {
+    const q = await import('@/lib/queries');
+    headerMap = new Map();
+    await q.getCommunityTierList();
+    expect(apiGet.mock.calls.at(-1)![0]).toBe('/tierlist');
+    await q.getCommunityTierList(3);
+    expect(apiGet.mock.calls.at(-1)![0]).toBe('/tierlist?season=3');
+    await q.getSeasons();
+    expect(apiGet.mock.calls.at(-1)![0]).toBe('/seasons');
+  });
 });

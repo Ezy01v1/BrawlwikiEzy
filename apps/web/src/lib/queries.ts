@@ -3,11 +3,13 @@ import {
   BrawlerSchema,
   ClubRankingSchema,
   ClubSchema,
+  CommunityTierListSchema,
   EventSlotSchema,
   type Favorite,
   FavoriteSchema,
   PlayerRankingSchema,
   PlayerSchema,
+  SeasonSchema,
 } from '@brawlwiki/shared';
 import { headers } from 'next/headers';
 import { cache } from 'react';
@@ -108,4 +110,16 @@ export const getBrawlerRankings = cache(async (brawlerId: number, region: string
   apiGet(`/rankings/brawlers/${brawlerId}${rankingQuery(region, limit)}`, z.array(PlayerRankingSchema), {
     forwardedFor: await forwardedFor(),
   }),
+);
+
+/** Tier list de la comunidad (pública). Sin `season` la API devuelve la temporada abierta. */
+export const getCommunityTierList = cache(async (season?: number) =>
+  apiGet(season === undefined ? '/tierlist' : `/tierlist?season=${season}`, CommunityTierListSchema, {
+    forwardedFor: await forwardedFor(),
+  }),
+);
+
+/** Todas las temporadas, la más nueva primero. */
+export const getSeasons = cache(async () =>
+  apiGet('/seasons', z.array(SeasonSchema), { forwardedFor: await forwardedFor() }),
 );
