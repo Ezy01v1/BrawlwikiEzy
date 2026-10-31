@@ -171,26 +171,6 @@ export function TierEditor({ season, brawlers, initialVotes }: TierEditorProps) 
         {placed < MIN_PLACED && (
           <p className="mt-2 text-sm text-muted">Ubica al menos {MIN_PLACED} brawlers para que tu voto cuente</p>
         )}
-        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
-          <Button onClick={save} disabled={!dirty || pending || wait > 0} aria-busy={pending || undefined}>
-            {pending ? 'Guardando…' : wait > 0 ? `Guardar en ${wait} s` : 'Guardar'}
-          </Button>
-          {dirty && !pending && <p className="text-sm text-muted">Tienes cambios sin guardar</p>}
-        </div>
-        {error && (
-          <div className="mt-2">
-            <ActionError
-              code={error}
-              {...(error === 'INVALID_PARAM' ? { message: INVALID_MESSAGE } : {})}
-              onNavigate={() => {
-                leaving.current = true;
-              }}
-            />
-          </div>
-        )}
-        <p role="status" className="mt-1 text-sm text-win">
-          {done ? SAVED_MESSAGE : ''}
-        </p>
       </section>
 
       <ul aria-label="Brawlers" className="grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-9">
@@ -233,6 +213,36 @@ export function TierEditor({ season, brawlers, initialVotes }: TierEditorProps) 
           );
         })}
       </ul>
+
+      {/*
+        Después de las cartas para que `sticky bottom` la deje pegada abajo mientras se recorre la grilla. En móvil
+        queda sobre la navegación inferior (min-h-14 + 1px de borde + safe area).
+      */}
+      <section
+        aria-label="Guardar cambios"
+        className="sticky bottom-[calc(3.5rem+1px+env(safe-area-inset-bottom))] z-10 rounded-card border border-border bg-surface/95 p-3 shadow-lg backdrop-blur md:bottom-2"
+      >
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <Button onClick={save} disabled={!dirty || pending || wait > 0} aria-busy={pending || undefined}>
+            {pending ? 'Guardando…' : wait > 0 ? `Guardar en ${wait} s` : 'Guardar'}
+          </Button>
+          {dirty && !pending && <p className="text-sm text-muted">Tienes cambios sin guardar</p>}
+        </div>
+        {error && (
+          <div className="mt-2">
+            <ActionError
+              code={error}
+              {...(error === 'INVALID_PARAM' ? { message: INVALID_MESSAGE } : {})}
+              onNavigate={() => {
+                leaving.current = true;
+              }}
+            />
+          </div>
+        )}
+        <p role="status" className="mt-1 text-sm text-win empty:hidden">
+          {done ? SAVED_MESSAGE : ''}
+        </p>
+      </section>
 
       {open && (
         <TierPicker
