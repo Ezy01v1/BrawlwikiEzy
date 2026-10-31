@@ -274,6 +274,13 @@ describe('openSeason (Server Action)', () => {
     expect(await openSeason('Temporada 3')).toEqual({ ok: false, code: 'FORBIDDEN' });
   });
 
+  it('404 NOT_FOUND y getSession lanza (respuesta inesperada de /me) → FORBIDDEN, sin lanzar', async () => {
+    getSession.mockRejectedValue(new Error('x'));
+    apiRequest.mockRejectedValue(new ApiError('NOT_FOUND', 'No encontrado', { status: 404 }));
+    expect(await openSeason('Temporada 3')).toEqual({ ok: false, code: 'FORBIDDEN' });
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
   it('solo consulta la sesión en el camino de fallo 404', async () => {
     apiRequest.mockResolvedValue({ data: OPEN, meta: META });
     await openSeason('Temporada 3');

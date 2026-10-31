@@ -28,8 +28,13 @@ export async function openSeason(name: string): Promise<ActionResult> {
     if (e instanceof ApiError) {
       if (e.code !== 'NOT_FOUND') return { ok: false, code: e.code };
       // Solo en el camino de fallo; `getSession` está cacheada por request.
-      const { enabled, user } = await getSession();
-      return { ok: false, code: enabled && !user ? 'UNAUTHENTICATED' : 'FORBIDDEN' };
+      try {
+        const { enabled, user } = await getSession();
+        return { ok: false, code: enabled && !user ? 'UNAUTHENTICATED' : 'FORBIDDEN' };
+      } catch {
+        // getSession relanza lo que no es ApiError (p. ej. una respuesta inesperada de /me): la acción nunca lanza.
+        return { ok: false, code: 'FORBIDDEN' };
+      }
     }
     console.error('[admin] abrir temporada falló', e instanceof Error ? e.message : e);
     return { ok: false, code: 'INTERNAL' };
