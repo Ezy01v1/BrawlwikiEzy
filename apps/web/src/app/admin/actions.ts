@@ -6,13 +6,16 @@ import type { ActionResult } from '@/lib/account';
 import { SEASON_NAME_MAX } from '@/lib/admin';
 import { ApiError, apiRequest } from '@/lib/api';
 import { requestContext } from '@/lib/queries';
+import { getSession } from '@/lib/session';
 
 // Como en /cuenta: la acción se puede invocar con un POST directo, así que el nombre se valida aquí
 // (la API lo vuelve a validar y exige sesión, Origin y rol de administrador). Los errores vuelven como dato.
 
 /**
  * Cierra la temporada activa y abre una nueva con ese nombre. La API responde 404 (y no 403) a quien no es
- * administrador para no revelar la ruta: aquí ese 404 se traduce a FORBIDDEN.
+ * administrador *ni a quien no tiene sesión*, para no revelar la ruta. Aquí ese 404 se desambigua con la sesión:
+ * sin usuario (la sesión venció tras cargar /admin) → UNAUTHENTICATED, para ofrecer volver a entrar; en cualquier otro
+ * caso → FORBIDDEN.
  */
 export async function openSeason(name: string): Promise<ActionResult> {
   const trimmed = typeof name === 'string' ? name.trim() : '';
@@ -22,7 +25,12 @@ export async function openSeason(name: string): Promise<ActionResult> {
   try {
     await apiRequest('POST', '/seasons', SeasonSchema, { body: { name: trimmed }, ...ctx });
   } catch (e) {
-    if (e instanceof ApiError) return { ok: false, code: e.code === 'NOT_FOUND' ? 'FORBIDDEN' : e.code };
+    if (e instanceof ApiError) {
+      if (e.code !== 'NOT_FOUND') return { ok: false, code: e.code };
+      // Solo en el camino de fallo; `getSession` está cacheada por request.
+      const { enabled, user } = await getSession();
+      return { ok: false, code: enabled && !user ? 'UNAUTHENTICATED' : 'FORBIDDEN' };
+    }
     console.error('[admin] abrir temporada falló', e instanceof Error ? e.message : e);
     return { ok: false, code: 'INTERNAL' };
   }

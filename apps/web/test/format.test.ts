@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { displayName, formatAge, formatNumber, plural, signed, timeAgo, timeLeft } from '@/lib/format';
+import { displayName, formatAge, formatDate, formatNumber, plural, signed, timeAgo, timeLeft } from '@/lib/format';
 
 const NOW = Date.parse('2026-09-29T12:00:00.000Z');
 
@@ -51,5 +51,17 @@ describe('plural', () => {
     expect(plural(1, 'miembro', 'miembros')).toBe('1 miembro');
     expect(plural(0, 'miembro', 'miembros')).toBe('0 miembros');
     expect(plural(30, 'miembro', 'miembros')).toBe('30 miembros');
+  });
+});
+
+describe('formatDate', () => {
+  it('formatea un ISO en es-MX y en UTC', () => {
+    expect(formatDate('2026-10-01T00:00:00.000Z')).toBe('1/10/2026');
+    expect(formatDate('2026-12-31T23:59:59.000Z')).toBe('31/12/2026');
+  });
+
+  it('un texto mal formado no lanza: devuelve "—"', () => {
+    expect(formatDate('no es una fecha')).toBe('—');
+    expect(formatDate('')).toBe('—');
   });
 });

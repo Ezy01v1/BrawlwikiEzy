@@ -56,7 +56,12 @@ export function OpenSeasonForm() {
         <input
           id={id}
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => {
+            setValue(e.target.value);
+            // Que no quede a la vista el resultado o el error del intento anterior.
+            setInvalid(false);
+            setDone(null);
+          }}
           autoComplete="off"
           aria-invalid={invalid || undefined}
           aria-describedby={describedBy}

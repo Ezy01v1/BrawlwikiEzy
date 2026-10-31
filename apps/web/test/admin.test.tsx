@@ -1,5 +1,5 @@
 import { type Season, SeasonSchema } from '@brawlwiki/shared';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { openSeason } from '@/app/admin/actions';
@@ -192,17 +192,34 @@ describe('formulario "Abrir temporada nueva"', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('No tienes permiso');
   });
 
-  it('doble envío seguido llama una sola vez a la acción', async () => {
+  it('doble envío síncrono (sin esperar un render) llama una sola vez a la acción', async () => {
     let resolve!: (v: { ok: true }) => void;
     openSeasonMock.mockImplementation(() => new Promise((r) => (resolve = r)));
     const { input, submit, user } = await setup();
     await user.type(input, 'Temporada 3');
-    await user.dblClick(submit);
+    const form = submit.closest('form')!;
+    // Dos submit seguidos en el mismo tick: el botón aún no alcanzó a deshabilitarse, solo el ref frena el segundo.
+    fireEvent.submit(form);
+    fireEvent.submit(form);
     expect(openSeasonMock).toHaveBeenCalledTimes(1);
-    expect(submit).toBeDisabled();
     resolve({ ok: true });
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Temporada abierta'));
+    expect(openSeasonMock).toHaveBeenCalledTimes(1);
     expect(submit).toBeEnabled();
+  });
+
+  it('al editar el input se limpian el estado "Temporada abierta" y el error del nombre', async () => {
+    openSeasonMock.mockResolvedValue({ ok: true });
+    const { input, submit, user } = await setup();
+    await user.click(submit);
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+    await user.type(input, 'T');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(input).not.toHaveAttribute('aria-invalid');
+    await user.click(submit);
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Temporada abierta'));
+    await user.type(input, 'N');
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
   });
 });
 
@@ -237,10 +254,32 @@ describe('openSeason (Server Action)', () => {
     expect(await openSeason('a'.repeat(64))).toEqual({ ok: true });
   });
 
-  it('404 NOT_FOUND de la API (no es admin) → FORBIDDEN, sin revalidar', async () => {
+  it('404 NOT_FOUND con sesión iniciada (no es admin) → FORBIDDEN, sin revalidar', async () => {
+    getSession.mockResolvedValue({ enabled: true, user: ADMIN });
     apiRequest.mockRejectedValue(new ApiError('NOT_FOUND', 'No encontrado', { status: 404 }));
     expect(await openSeason('Temporada 3')).toEqual({ ok: false, code: 'FORBIDDEN' });
     expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it('404 NOT_FOUND sin sesión (venció tras cargar /admin) → UNAUTHENTICATED', async () => {
+    getSession.mockResolvedValue({ enabled: true, user: null });
+    apiRequest.mockRejectedValue(new ApiError('NOT_FOUND', 'No encontrado', { status: 404 }));
+    expect(await openSeason('Temporada 3')).toEqual({ ok: false, code: 'UNAUTHENTICATED' });
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it('404 NOT_FOUND con Comunidad deshabilitada → FORBIDDEN', async () => {
+    getSession.mockResolvedValue({ enabled: false, user: null });
+    apiRequest.mockRejectedValue(new ApiError('NOT_FOUND', 'No encontrado', { status: 404 }));
+    expect(await openSeason('Temporada 3')).toEqual({ ok: false, code: 'FORBIDDEN' });
+  });
+
+  it('solo consulta la sesión en el camino de fallo 404', async () => {
+    apiRequest.mockResolvedValue({ data: OPEN, meta: META });
+    await openSeason('Temporada 3');
+    apiRequest.mockRejectedValue(new ApiError('RATE_LIMITED', 'x', { status: 429 }));
+    await openSeason('Temporada 3');
+    expect(getSession).not.toHaveBeenCalled();
   });
 
   it.each(['UNAUTHENTICATED', 'INVALID_PARAM', 'RATE_LIMITED', 'DB_UNAVAILABLE', 'FORBIDDEN'] as const)(
