@@ -5,10 +5,13 @@ import { SavedList } from '@/components/search/RecentSearches';
 import { TagSearch } from '@/components/search/TagSearch';
 import { ButtonLink } from '@/components/ui/Button';
 import { profileHref } from '@/lib/account';
+import { accountFavorites } from '@/lib/account-favorites';
 import { getSession } from '@/lib/session';
 
 export default async function HomePage() {
   const { user } = await getSession();
+  // Con sesión, los favoritos de la cuenta; sin sesión (o sin Comunidad) `null` → los de localStorage.
+  const favorites = await accountFavorites();
   return (
     <>
       {user?.playerTag && (
@@ -28,7 +31,7 @@ export default async function HomePage() {
         <TagSearch variant="hero" />
       </section>
       <div className="mx-auto max-w-xl">
-        <SavedList source="favorites" />
+        <SavedList source="favorites" items={favorites ?? undefined} />
         <SavedList source="recent" />
       </div>
       <section aria-labelledby="eventos" className="my-8">

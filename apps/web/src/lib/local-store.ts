@@ -46,6 +46,15 @@ export function getFavorites(): SavedEntry[] {
   return read(FAVORITES_KEY);
 }
 
+/** Tras subirlos a la cuenta: con sesión los favoritos viven en la API. Los recientes no se tocan. */
+export function clearFavorites(): void {
+  try {
+    window.localStorage.removeItem(FAVORITES_KEY);
+  } catch {
+    // Sin almacenamiento: no hay nada que borrar.
+  }
+}
+
 export function isFavorite(entry: SavedEntry): boolean {
   return getFavorites().some((e) => same(e, entry));
 }

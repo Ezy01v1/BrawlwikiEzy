@@ -13,6 +13,7 @@ import { RecordVisit } from '@/components/search/RecordVisit';
 import { ApiErrorView } from '@/components/states/ApiErrorView';
 import { StaleBadge } from '@/components/states/StaleBadge';
 import { Tabs } from '@/components/ui/Tabs';
+import { favoriteState } from '@/lib/account-favorites';
 import { attempt } from '@/lib/attempt';
 import { parseOrder } from '@/lib/brawlers';
 import { formatNumber } from '@/lib/format';
@@ -45,7 +46,8 @@ export default async function PlayerPage({ params, searchParams }: PageProps<'/j
   // Arranca el battle log en paralelo con el jugador para que no espere a que éste resuelva (M2).
   if (tab === 'partidas') void getBattleLog(tag).catch(() => {});
 
-  const r = await attempt(getPlayer(tag));
+  // El estado del favorito (sesión + favoritos de la cuenta) en paralelo con el jugador; sin sesión no pide nada.
+  const [r, favorite] = await Promise.all([attempt(getPlayer(tag)), favoriteState('player', tag)]);
   if (!r.ok) {
     if (r.error.code === 'NOT_FOUND') notFound();
     if (r.error.code === 'INVALID_TAG') return <InvalidTag />;
@@ -58,7 +60,7 @@ export default async function PlayerPage({ params, searchParams }: PageProps<'/j
   return (
     <>
       <RecordVisit entry={{ type: 'player', tag: player.tag, name: player.name }} />
-      <PlayerHeader player={player} />
+      <PlayerHeader player={player} favorite={favorite} />
       {/* La sesión ya la pidió el header (getSession está cacheada por request): esto no espera otra llamada. */}
       <Suspense fallback={null}>
         <ClaimTag tag={player.tag} />

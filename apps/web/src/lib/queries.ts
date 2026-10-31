@@ -4,13 +4,15 @@ import {
   ClubRankingSchema,
   ClubSchema,
   EventSlotSchema,
+  type Favorite,
+  FavoriteSchema,
   PlayerRankingSchema,
   PlayerSchema,
 } from '@brawlwiki/shared';
 import { headers } from 'next/headers';
 import { cache } from 'react';
 import { z } from 'zod';
-import { apiGet } from './api';
+import { ApiError, apiGet, apiRequest } from './api';
 import { RANKING_LIMIT } from './rankings';
 import { siteOrigin } from './site';
 
@@ -78,6 +80,29 @@ export const getClubRankings = cache(async (region: string, limit: number = RANK
     forwardedFor: await forwardedFor(),
   }),
 );
+
+/** Corto como el de la sesión: la home y los perfiles lo esperan, y no pueden colgarse si MySQL anda lento. */
+export const FAVORITES_TIMEOUT_MS = 1500;
+
+/**
+ * Favoritos de la cuenta (el más reciente primero). Solo con sesión: quien llama mira `getSession()` antes.
+ * Si falla devuelve `[]`: los favoritos no pueden tirar la home ni un perfil.
+ */
+export const getFavorites = cache(async (): Promise<Favorite[]> => {
+  const { forwardedFor, cookie } = await requestContext();
+  try {
+    const r = await apiRequest('GET', '/me/favorites', z.array(FavoriteSchema), {
+      forwardedFor,
+      cookie,
+      timeoutMs: FAVORITES_TIMEOUT_MS,
+    });
+    return r?.data ?? [];
+  } catch (e) {
+    if (!(e instanceof ApiError)) throw e;
+    console.error('[favoritos] GET /me/favorites falló', e.code, e.status);
+    return [];
+  }
+});
 
 export const getBrawlerRankings = cache(async (brawlerId: number, region: string, limit: number = RANKING_LIMIT) =>
   apiGet(`/rankings/brawlers/${brawlerId}${rankingQuery(region, limit)}`, z.array(PlayerRankingSchema), {

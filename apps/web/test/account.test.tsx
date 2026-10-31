@@ -41,8 +41,12 @@ vi.mock('@/app/cuenta/actions', () => ({
   deleteAccount: (...a: unknown[]) => deleteAccount(...a),
 }));
 
-// La home trae los eventos de la API: aquí solo importa el acceso a "Mi perfil".
+// La home trae los eventos y, con sesión, los favoritos de la API: aquí solo importa el acceso a "Mi perfil".
 vi.mock('@/components/events/EventRotation', () => ({ EventRotation: () => null }));
+vi.mock('@/lib/queries', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/queries')>()),
+  getFavorites: async () => [],
+}));
 
 const USER: User = { id: 7, username: 'Ezy Brawler', avatarUrl: null, playerTag: null, isAdmin: false };
 
