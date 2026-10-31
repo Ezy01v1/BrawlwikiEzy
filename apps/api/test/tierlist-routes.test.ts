@@ -501,4 +501,34 @@ describe.skipIf(!testDb)('con MySQL', () => {
     const me = await request(app).get('/api/v1/tierlist/me').set('Cookie', c);
     expect(me.body.data.votes).toEqual(saved);
   });
+
+  it('5 usuarios distintos guardan su primera lista a la vez: todos 204 y cada uno con sus votos', async () => {
+    if (!testDb) return;
+    await testDb.reset();
+    const { app, db, store, origin } = dbApp();
+    const admin = `bw_session=${await store.create(await seedUser(db, 'adm'))}`;
+    const s = await request(app).post('/api/v1/seasons').set('Origin', origin).set('Cookie', admin).send({ name: 'T1' });
+    expect(s.status).toBe(201);
+    const seasonId: number = s.body.data.id;
+    const people = await Promise.all(
+      [0, 1, 2, 3, 4].map(async (i) => {
+        const id = await seedUser(db, `c${i}`);
+        // Listas que se solapan en brawlers: los INSERT caen en los mismos huecos del índice.
+        return { id, cookie: `bw_session=${await store.create(id)}`, body: votes(range(i * 2, 12), (i % 5) + 1) };
+      }),
+    );
+    const results = await Promise.all(
+      people.map((p) =>
+        request(app).put('/api/v1/tierlist/me').set('Origin', origin).set('Cookie', p.cookie).send(p.body),
+      ),
+    );
+    expect(results.map((r) => r.status)).toEqual([204, 204, 204, 204, 204]);
+    for (const p of people) {
+      const rows = await db
+        .select({ brawlerId: tierVotes.brawlerId, tier: tierVotes.tier })
+        .from(tierVotes)
+        .where(and(eq(tierVotes.userId, p.id), eq(tierVotes.seasonId, seasonId)));
+      expect(rows.sort((a, b) => a.brawlerId - b.brawlerId)).toEqual(p.body.votes);
+    }
+  });
 });

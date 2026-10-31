@@ -28,28 +28,66 @@ describe('isLockConflict', () => {
 });
 
 describe('retryOnLockConflict', () => {
-  it('un deadlock y luego éxito → reintenta una vez y devuelve el resultado', async () => {
+  /** sleep falso que registra las esperas; random fijo para que el jitter sea predecible. */
+  function timers(random = () => 0.5) {
+    const waits: number[] = [];
+    return { waits, opts: { sleep: async (ms: number) => void waits.push(ms), random } };
+  }
+
+  it('un deadlock y luego éxito → reintenta una vez, tras esperar, y devuelve el resultado', async () => {
+    const t = timers();
     const f = failing([deadlock()]);
-    await expect(retryOnLockConflict(f.fn)).resolves.toBe('ok');
+    await expect(retryOnLockConflict(f.fn, t.opts)).resolves.toBe('ok');
     expect(f.calls()).toBe(2);
+    expect(t.waits).toEqual([60]);
   });
 
-  it('dos conflictos seguidos → relanza el segundo, sin un tercer intento', async () => {
-    const second = Object.assign(new Error('Lock wait timeout'), { errno: 1205 });
-    const f = failing([deadlock(), second]);
-    await expect(retryOnLockConflict(f.fn)).rejects.toBe(second);
-    expect(f.calls()).toBe(2);
+  it('tres conflictos y éxito en el tercer reintento', async () => {
+    const t = timers();
+    const timeout = Object.assign(new Error('Lock wait timeout'), { errno: 1205 });
+    const f = failing([deadlock(), timeout, deadlock()]);
+    await expect(retryOnLockConflict(f.fn, t.opts)).resolves.toBe('ok');
+    expect(f.calls()).toBe(4);
+    expect(t.waits).toHaveLength(3);
   });
 
-  it('otro error → no reintenta', async () => {
+  it('cuatro conflictos seguidos → relanza el último tras 3 reintentos', async () => {
+    const t = timers();
+    const last = Object.assign(new Error('Lock wait timeout'), { errno: 1205 });
+    const f = failing([deadlock(), deadlock(), deadlock(), last]);
+    await expect(retryOnLockConflict(f.fn, t.opts)).rejects.toBe(last);
+    expect(f.calls()).toBe(4);
+    expect(t.waits).toHaveLength(3);
+  });
+
+  it('la espera es aleatoria entre 20 y 100 ms', async () => {
+    for (const [r, ms] of [
+      [0, 20],
+      [0.999999, 100],
+    ] as const) {
+      const t = timers(() => r);
+      await retryOnLockConflict(failing([deadlock()]).fn, t.opts);
+      expect(t.waits[0]).toBeCloseTo(ms, 0);
+    }
+  });
+
+  it('otro error → no reintenta ni espera', async () => {
+    const t = timers();
     const err = new Error('ECONNREFUSED');
     const f = failing([err]);
-    await expect(retryOnLockConflict(f.fn)).rejects.toBe(err);
+    await expect(retryOnLockConflict(f.fn, t.opts)).rejects.toBe(err);
     expect(f.calls()).toBe(1);
+    expect(t.waits).toEqual([]);
   });
 
   it('conflicto envuelto en cause (como DrizzleQueryError) también se reintenta', async () => {
     const f = failing([new Error('Failed query', { cause: deadlock() })]);
+    await expect(retryOnLockConflict(f.fn, timers().opts)).resolves.toBe('ok');
+    expect(f.calls()).toBe(2);
+  });
+
+  it('sin opciones usa un sleep real (corto)', async () => {
+    const f = failing([deadlock()]);
     await expect(retryOnLockConflict(f.fn)).resolves.toBe('ok');
     expect(f.calls()).toBe(2);
   });
