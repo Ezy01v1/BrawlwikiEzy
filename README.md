@@ -42,7 +42,7 @@ npm run db:migrate -w @brawlwiki/api     # crea o actualiza las tablas; correrlo
 |---|---|
 | `DATABASE_URL` | MySQL de Comunidad. Vacía = API sin Comunidad (modo v1) |
 | `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET` | App de Discord para el login (obligatorias con `DATABASE_URL`, salvo con `AUTH_MOCK=1`) |
-| `PUBLIC_SITE_URL` | URL pública de la web (por defecto `http://localhost:3200`). Arma el redirect de Discord (`/auth/discord/callback`) y es el único `Origin` aceptado en los POST/PUT/PATCH/DELETE |
+| `PUBLIC_SITE_URL` | URL pública de la web (por defecto `http://localhost:3200`; se usa solo su origin). En producción con `DATABASE_URL` es obligatoria y `https`. Arma el redirect de Discord (`/auth/discord/callback`) y es el único `Origin` aceptado en los POST/PUT/PATCH/DELETE |
 | `ADMIN_DISCORD_IDS` | Ids de Discord de los administradores, separados por coma (pueden abrir temporadas en `/admin`) |
 | `AUTH_MOCK`, `AUTH_MOCK_ADMIN` | `1` = login falso con `MockUser`, sin Discord (y admin con `AUTH_MOCK_ADMIN=1`). Solo desarrollo y tests: la API no arranca con `AUTH_MOCK=1` y `NODE_ENV=production` |
 | `TEST_DATABASE_URL` | Solo tests: servidor MySQL **sin base** (ej. `mysql://bw_test:CONTRASEÑA@127.0.0.1:3306`) |

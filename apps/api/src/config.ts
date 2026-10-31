@@ -11,7 +11,7 @@ const EnvSchema = z.object({
   DATABASE_URL: z.string().optional(),
   DISCORD_CLIENT_ID: z.string().optional(),
   DISCORD_CLIENT_SECRET: z.string().optional(),
-  PUBLIC_SITE_URL: z.string().url().default('http://localhost:3200'),
+  PUBLIC_SITE_URL: z.string().url().optional(),
   ADMIN_DISCORD_IDS: z.string().default(''),
   AUTH_MOCK: z.enum(['0', '1']).default('0'),
   AUTH_MOCK_ADMIN: z.enum(['0', '1']).default('0'),
@@ -36,6 +36,41 @@ export interface Config {
   nodeEnv: string;
 }
 
+const DEFAULT_PUBLIC_SITE_URL = 'http://localhost:3200';
+
+function isLocalHostname(hostname: string): boolean {
+  return (
+    hostname === 'localhost' ||
+    hostname.endsWith('.localhost') ||
+    hostname === '127.0.0.1' ||
+    hostname === '[::1]'
+  );
+}
+
+/**
+ * PUBLIC_SITE_URL normalizado a su origin: el redirect de Discord se arma concatenando y un "/" final daría
+ * `//auth/...`, que no coincide con el registrado. En producción con Comunidad tiene que estar y ser https.
+ */
+function publicSiteUrlFrom(e: z.infer<typeof EnvSchema>, authMock: boolean): string {
+  const raw = e.PUBLIC_SITE_URL;
+  if (e.NODE_ENV === 'production' && e.DATABASE_URL) {
+    if (!raw) {
+      throw new Error(
+        'Falta PUBLIC_SITE_URL en apps/api/.env: en producción con DATABASE_URL tiene que ser la URL https del sitio.',
+      );
+    }
+    if (new URL(raw).protocol !== 'https:') {
+      throw new Error('PUBLIC_SITE_URL tiene que usar https en producción (la cookie de sesión es Secure).');
+    }
+  }
+  const url = new URL(raw ?? DEFAULT_PUBLIC_SITE_URL);
+  // Segunda barrera por si falta NODE_ENV: AUTH_MOCK nunca con un sitio público.
+  if (authMock && raw && url.protocol === 'https:' && !isLocalHostname(url.hostname)) {
+    throw new Error(`AUTH_MOCK=1 no está permitido con un PUBLIC_SITE_URL público (${url.origin}).`);
+  }
+  return url.origin;
+}
+
 export function loadConfig(env: Record<string, string | undefined> = process.env): Config {
   const present = Object.fromEntries(Object.entries(env).filter(([, v]) => v !== undefined && v !== ''));
   const e = EnvSchema.parse(present);
@@ -54,6 +89,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
       if (!e[key]) throw new Error(`Falta ${key} en apps/api/.env (o usa AUTH_MOCK=1 en desarrollo).`);
     }
   }
+  const publicSiteUrl = publicSiteUrlFrom(e, authMock);
   return {
     supercellApiKey: e.SUPERCELL_API_KEY ?? null,
     supercellApiBase: e.SUPERCELL_API_BASE,
@@ -65,7 +101,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     databaseUrl: e.DATABASE_URL ?? null,
     discordClientId: e.DISCORD_CLIENT_ID ?? null,
     discordClientSecret: e.DISCORD_CLIENT_SECRET ?? null,
-    publicSiteUrl: e.PUBLIC_SITE_URL,
+    publicSiteUrl,
     adminDiscordIds: e.ADMIN_DISCORD_IDS.split(',').map((id) => id.trim()).filter(Boolean),
     authMock,
     authMockAdmin: e.AUTH_MOCK_ADMIN === '1',
@@ -76,7 +112,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
 /** discord_id del usuario de AUTH_MOCK. */
 export const MOCK_DISCORD_ID = 'mock-1';
 
-/** Admins efectivos: ADMIN_DISCORD_IDS m�s el usuario mock si AUTH_MOCK=1 y AUTH_MOCK_ADMIN=1. */
+/** Admins efectivos: ADMIN_DISCORD_IDS más el usuario mock si AUTH_MOCK=1 y AUTH_MOCK_ADMIN=1. */
 export function effectiveAdminIds(config: Pick<Config, 'adminDiscordIds' | 'authMock' | 'authMockAdmin'>): string[] {
   return config.authMock && config.authMockAdmin ? [...config.adminDiscordIds, MOCK_DISCORD_ID] : config.adminDiscordIds;
 }

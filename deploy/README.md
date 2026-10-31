@@ -60,7 +60,7 @@ REDIS_URL=redis://127.0.0.1:6379
 DATABASE_URL=mysql://brawlwiki:UNA_CONTRASEÑA_LARGA@127.0.0.1:3306/brawlwiki
 DISCORD_CLIENT_ID=...
 DISCORD_CLIENT_SECRET=...
-PUBLIC_SITE_URL=https://TU_DOMINIO         # sin "/" al final; arma el redirect de Discord y es el único Origin aceptado
+PUBLIC_SITE_URL=https://TU_DOMINIO         # obligatoria y https; arma el redirect de Discord y es el único Origin aceptado
 ADMIN_DISCORD_IDS=123456789012345678       # ids de Discord de los admins, separados por coma
 ```
 
