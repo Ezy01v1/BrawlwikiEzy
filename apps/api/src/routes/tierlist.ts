@@ -132,7 +132,7 @@ export function createTierStore(db: Db): TierStore {
 }
 
 /** Caché tolerante a fallos: si Redis cae, se calcula igual (como safeGet/safeSet de cached-fetch). */
-function tierListCache(cache: Cache) {
+export function tierListCache(cache: Cache) {
   const warn = (req: Request, err: unknown, key: string, op: string) =>
     req.log?.warn({ err, key }, `caché no disponible (${op})`);
   return {

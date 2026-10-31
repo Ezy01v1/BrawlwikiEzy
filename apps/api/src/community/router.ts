@@ -14,7 +14,8 @@ import type { VoteRow } from './tiers';
 /** Escrituras sobre la cuenta; por defecto usa la DB (se sustituye en tests sin DB). */
 export interface AccountStore {
   setPlayerTag(userId: number, tag: string | null): Promise<void>;
-  deleteUser(userId: number): Promise<void>;
+  /** Borra la cuenta (y en cascada sesiones, favoritos y votos); devuelve las temporadas en las que votó. */
+  deleteUser(userId: number): Promise<number[]>;
 }
 
 /** Favoritos del usuario; por defecto usa la DB (se sustituye en tests sin DB). */

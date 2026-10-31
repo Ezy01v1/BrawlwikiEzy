@@ -1,15 +1,17 @@
 import { type User, UserSchema } from '@brawlwiki/shared';
-import express, { type Request, type Response, Router } from 'express';
+import { type Request, type Response, Router } from 'express';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import type { AccountStore, CommunityDeps } from '../community/router';
 import { dbCall } from '../community/sessions';
 import { requireUser, SESSION_COOKIE, sessionCookieOptions } from '../http/auth';
 import { AppError } from '../errors';
+import { jsonBody } from '../http/json-body';
 import { parseTagParam } from '../http/params';
 import { sendData } from '../http/respond';
 import type { Db } from '../db/client';
-import { users } from '../db/schema';
+import { tierVotes, users } from '../db/schema';
+import { tierListCache } from './tierlist';
 
 const PatchMeSchema = z.object({ playerTag: z.string().nullable() }).strict();
 
@@ -18,9 +20,19 @@ export function createAccountStore(db: Db): AccountStore {
     async setPlayerTag(userId, tag) {
       await dbCall(() => db.update(users).set({ playerTag: tag }).where(eq(users.id, userId)));
     },
-    // Las FK con ON DELETE CASCADE se llevan sesiones, favoritos y votos.
+    // Las FK con ON DELETE CASCADE se llevan sesiones, favoritos y votos. Antes se leen las temporadas
+    // votadas, en la misma transacción, para invalidar sus agregados cacheados.
     async deleteUser(userId) {
-      await dbCall(() => db.delete(users).where(eq(users.id, userId)));
+      return dbCall(() =>
+        db.transaction(async (tx) => {
+          const voted = await tx
+            .selectDistinct({ seasonId: tierVotes.seasonId })
+            .from(tierVotes)
+            .where(eq(tierVotes.userId, userId));
+          await tx.delete(users).where(eq(users.id, userId));
+          return voted.map((v) => v.seasonId);
+        }),
+      );
     },
   };
 }
@@ -46,6 +58,7 @@ function sendUser(res: Response, data: { user: User | null }): void {
 export function createMeRouter(deps: CommunityDeps): Router {
   const { config } = deps;
   const accounts = deps.accounts ?? createAccountStore(deps.db);
+  const tierLists = tierListCache(deps.cache);
   const router = Router();
 
   // GET nunca responde 401: sin sesión → { user: null }.
@@ -53,7 +66,7 @@ export function createMeRouter(deps: CommunityDeps): Router {
     sendUser(res, { user: req.user ? publicUser(req) : null });
   });
 
-  router.patch('/', requireUser(), express.json({ limit: '1kb' }), async (req, res) => {
+  router.patch('/', requireUser(), jsonBody('1kb'), async (req, res) => {
     const body = PatchMeSchema.safeParse(req.body);
     if (!body.success) throw new AppError('INVALID_PARAM', 'Cuerpo inválido. Envía { "playerTag": "#TAG" | null }.');
     const tag = body.data.playerTag === null ? null : parseTagParam(body.data.playerTag);
@@ -63,7 +76,9 @@ export function createMeRouter(deps: CommunityDeps): Router {
   });
 
   router.delete('/', requireUser(), async (req, res) => {
-    await accounts.deleteUser(publicUser(req).id);
+    const votedSeasons = await accounts.deleteUser(publicUser(req).id);
+    // Sus votos ya no cuentan: el agregado cacheado (5 min la activa, 24 h las cerradas) se recalcula.
+    for (const seasonId of votedSeasons) await tierLists.invalidate(req, seasonId);
     const { maxAge: _m, ...opts } = sessionCookieOptions(config);
     res.clearCookie(SESSION_COOKIE, opts);
     res.status(204).end();

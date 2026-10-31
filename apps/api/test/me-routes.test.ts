@@ -8,6 +8,8 @@ import { createSessionStore, hashToken, type SessionStore, type SessionUser } fr
 import { loadConfig } from '../src/config';
 import { favorites, seasons, sessions, tierVotes, users } from '../src/db/schema';
 import { createLogger } from '../src/logger';
+import { tierListKey } from '../src/routes/tierlist';
+import { createAccountStore } from '../src/routes/me';
 import { withTestDb } from './db-helpers';
 
 const SITE = 'http://localhost:3200';
@@ -18,7 +20,10 @@ function fakeApp(opts: { withCommunity?: boolean; admin?: boolean } = {}) {
     user: { id: 1, discordId: '42', username: 'Ana', avatarUrl: null, playerTag: null } as SessionUser,
     sessions: new Set<string>([TOKEN]),
     deleted: [] as number[],
+    /** Temporadas en las que votó (lo que devuelve deleteUser). */
+    votedSeasons: [] as number[],
   };
+  const cache = createMemoryCache();
   const store: SessionStore = {
     create: async () => 'x',
     resolve: async (t) => (state.sessions.has(t) ? { ...state.user } : null),
@@ -33,7 +38,7 @@ function fakeApp(opts: { withCommunity?: boolean; admin?: boolean } = {}) {
     sessions: store,
     config,
     brawlerIds: async () => new Set<number>(),
-    cache: createMemoryCache(),
+    cache,
     accounts: {
       async setPlayerTag(userId, tag) {
         if (userId === state.user.id) state.user.playerTag = tag;
@@ -41,6 +46,7 @@ function fakeApp(opts: { withCommunity?: boolean; admin?: boolean } = {}) {
       async deleteUser(userId) {
         state.deleted.push(userId);
         state.sessions.clear();
+        return state.votedSeasons;
       },
     },
   };
@@ -49,7 +55,7 @@ function fakeApp(opts: { withCommunity?: boolean; admin?: boolean } = {}) {
     health: () => ({}) as never,
     ...(opts.withCommunity === false ? {} : { community }),
   });
-  return { app, state };
+  return { app, state, cache };
 }
 
 const cookie = `bw_session=${TOKEN}`;
@@ -136,6 +142,14 @@ describe('PATCH /me', () => {
     expect(bad.body.error.code).toBe('INVALID_PARAM');
   });
 
+  it('cuerpo de más de 1 KB → 400 INVALID_PARAM (no 500) y no guarda', async () => {
+    const { app, state } = fakeApp();
+    const res = await patch(app, { playerTag: '#2PP', relleno: 'x'.repeat(2048) });
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('INVALID_PARAM');
+    expect(state.user.playerTag).toBeNull();
+  });
+
   it('sin sesión → 401; sin Origin → 403', async () => {
     const { app } = fakeApp();
     const anon = await request(app).patch('/api/v1/me').set('Origin', SITE).send({ playerTag: null });
@@ -156,6 +170,28 @@ describe('DELETE /me', () => {
     expect(sc).toMatch(/HttpOnly/);
     expect(sc).toMatch(/SameSite=Lax/);
     expect(sc).toMatch(/Path=\//);
+  });
+
+  it('invalida la tier list cacheada de cada temporada en la que votó (y solo esas)', async () => {
+    const { app, state, cache } = fakeApp();
+    state.votedSeasons = [2, 5];
+    for (const id of [2, 5, 9]) await cache.set(tierListKey(id), { voters: 1, rows: [], fetchedAt: 0 }, 300);
+    const res = await request(app).delete('/api/v1/me').set('Origin', SITE).set('Cookie', cookie);
+    expect(res.status).toBe(204);
+    expect(await cache.get(tierListKey(2))).toBeUndefined();
+    expect(await cache.get(tierListKey(5))).toBeUndefined();
+    expect(await cache.get(tierListKey(9))).toBeDefined();
+  });
+
+  it('si la caché falla al borrar, la cuenta se borra igual (204)', async () => {
+    const { app, state, cache } = fakeApp();
+    state.votedSeasons = [2];
+    cache.del = async () => {
+      throw new Error('redis caído');
+    };
+    const res = await request(app).delete('/api/v1/me').set('Origin', SITE).set('Cookie', cookie);
+    expect(res.status).toBe(204);
+    expect(state.deleted).toEqual([1]);
   });
 
   it('sin sesión → 401; sin Origin → 403', async () => {
@@ -244,5 +280,21 @@ describe.skipIf(!testDb)('con MySQL', () => {
     expect(await db.select().from(sessions).where(eq(sessions.userId, other))).toHaveLength(1);
     expect(await db.select().from(favorites).where(eq(favorites.userId, other))).toHaveLength(1);
     expect(await db.select().from(tierVotes).where(eq(tierVotes.userId, other))).toHaveLength(1);
+  });
+
+  it('deleteUser devuelve las temporadas en las que votó el usuario', async () => {
+    if (!testDb) return;
+    await testDb.reset();
+    const db = testDb.db;
+    const id = await seedUser(db, 'd1');
+    const [s1] = await db.insert(seasons).values({ name: 'T1', startedAt: new Date() });
+    const [s2] = await db.insert(seasons).values({ name: 'T2', startedAt: new Date() });
+    await db.insert(seasons).values({ name: 'T3', startedAt: new Date() });
+    for (const sid of [s1.insertId, s2.insertId]) {
+      await db.insert(tierVotes).values({ seasonId: sid, userId: id, brawlerId: 16000000, tier: 3 });
+    }
+    const affected = await createAccountStore(db).deleteUser(id);
+    expect([...affected].sort((a, b) => a - b)).toEqual([s1.insertId, s2.insertId]);
+    expect(await db.select().from(users).where(eq(users.id, id))).toHaveLength(0);
   });
 });
