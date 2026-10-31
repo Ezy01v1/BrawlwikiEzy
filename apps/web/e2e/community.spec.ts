@@ -85,12 +85,13 @@ test('/tierlist: "0 votantes" y ningún brawler ubicado (MockUser ubicó menos d
   await expect(page.getByText(`${SEASON} · 0 votantes`)).toBeVisible();
   await expect(page.getByRole('link', { name: 'Armar mi tier list' })).toHaveAttribute('href', '/tierlist/editar');
 
-  // Los votos de quien ubicó menos de 10 brawlers se descartan: el agregado no tiene filas, así que todas las
-  // secciones (S a D y "Pocos votos") quedan vacías. El promedio con votos reales lo cubren los tests de la API.
+  // Los votos de quien ubicó menos de 10 brawlers se descartan: el agregado no tiene filas, así que S a D quedan
+  // vacías y todo el catálogo cae en "Pocos votos" con 0 votos. El promedio con votos reales lo cubren los tests de la API.
   const fewVotes = page.getByRole('region', { name: 'Pocos votos' });
   await expect(fewVotes).toBeVisible();
-  await expect(fewVotes.getByText('Sin brawlers')).toBeVisible();
-  await expect(page.getByRole('main').getByText('Sin brawlers')).toHaveCount(6);
+  await expect(fewVotes.getByText('Sin brawlers')).toHaveCount(0);
+  await expect(fewVotes.getByRole('link', { name: /Shelly, .*0 votos/ })).toBeVisible();
+  await expect(page.getByRole('main').getByText('Sin brawlers')).toHaveCount(5);
 });
 
 test('favorito con sesión: sobrevive a recargar y no usa localStorage', async ({ page }) => {
