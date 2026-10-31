@@ -115,16 +115,16 @@ describe('GET /auth/discord', () => {
 });
 
 describe('POST /auth/logout', () => {
-  it('manda POST con Cookie, Origin y XFF; copia Set-Cookie y redirige con 303 a /', async () => {
+  /** El Set-Cookie que la web agrega siempre: el navegador sale aunque la API no haya podido borrar la sesión. */
+  const EXPIRE = 'bw_session=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax';
+  const post = (headers: Record<string, string> = {}) =>
+    logout(new Request(`${SITE}/auth/logout`, { method: 'POST', headers }));
+
+  it('manda POST con Cookie, Origin y XFF; copia Set-Cookie, expira bw_session y redirige con 303 a /', async () => {
     fetchMock.mockResolvedValue(
       apiResponse(204, { cookies: ['bw_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly'] }),
     );
-    const res = await logout(
-      new Request(`${SITE}/auth/logout`, {
-        method: 'POST',
-        headers: { cookie: 'bw_session=tok', origin: SITE, 'x-real-ip': '198.51.100.9' },
-      }),
-    );
+    const res = await post({ cookie: 'bw_session=tok', origin: SITE, 'x-real-ip': '198.51.100.9' });
     const [url, init] = lastCall();
     expect(url).toBe(`${API}/auth/logout`);
     expect(init.method).toBe('POST');
@@ -136,29 +136,57 @@ describe('POST /auth/logout', () => {
 
     expect(res.status).toBe(303);
     expect(res.headers.get('location')).toBe('/');
-    expect(res.headers.getSetCookie()).toEqual(['bw_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly']);
+    expect(res.headers.getSetCookie()).toEqual([
+      'bw_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly',
+      EXPIRE,
+    ]);
   });
 
-  it('sin Origin del navegador usa NEXT_PUBLIC_SITE_URL; un Origin ajeno se reenvía tal cual (la API lo rechaza)', async () => {
+  it('401 (la sesión ya no existía) también vuelve a / sin aviso', async () => {
+    fetchMock.mockResolvedValue(apiResponse(401));
+    const res = await post({ cookie: 'bw_session=vieja' });
+    expect(res.status).toBe(303);
+    expect(res.headers.get('location')).toBe('/');
+    expect(res.headers.getSetCookie()).toEqual([EXPIRE]);
+  });
+
+  it('sin Origin del navegador usa NEXT_PUBLIC_SITE_URL; un Origin ajeno se reenvía tal cual y el 403 avisa', async () => {
     fetchMock.mockResolvedValue(apiResponse(204));
-    await logout(new Request(`${SITE}/auth/logout`, { method: 'POST' }));
+    await post();
     expect(new Headers(lastCall()[1].headers).get('origin')).toBe(SITE);
 
     fetchMock.mockResolvedValue(
       apiResponse(403, { body: JSON.stringify({ error: { code: 'FORBIDDEN', message: 'x', requestId: 'r' } }) }),
     );
-    const res = await logout(
-      new Request(`${SITE}/auth/logout`, { method: 'POST', headers: { origin: 'https://evil.test' } }),
-    );
+    const res = await post({ origin: 'https://evil.test' });
     expect(new Headers(lastCall()[1].headers).get('origin')).toBe('https://evil.test');
     expect(res.status).toBe(303);
-    expect(res.headers.get('location')).toBe('/');
+    expect(res.headers.get('location')).toBe('/?logout=error');
+    expect(res.headers.getSetCookie()).toEqual([EXPIRE]);
   });
 
-  it('API caída → 303 a /?login=error', async () => {
+  it('la API falla (503 DB_UNAVAILABLE, 404 sin Comunidad) → /?logout=error, y la cookie se expira igual', async () => {
+    for (const status of [503, 404, 500]) {
+      fetchMock.mockResolvedValue(apiResponse(status, { body: '{}' }));
+      const res = await post({ cookie: 'bw_session=tok' });
+      expect(res.status, String(status)).toBe(303);
+      expect(res.headers.get('location')).toBe('/?logout=error');
+      expect(res.headers.getSetCookie()).toEqual([EXPIRE]);
+    }
+  });
+
+  it('API caída → 303 a /?logout=error (no login=error) y expira bw_session', async () => {
     fetchMock.mockRejectedValue(new TypeError('fetch failed'));
-    const res = await logout(new Request(`${SITE}/auth/logout`, { method: 'POST' }));
+    const res = await post({ cookie: 'bw_session=tok' });
     expect(res.status).toBe(303);
-    expect(res.headers.get('location')).toBe('/?login=error');
+    expect(res.headers.get('location')).toBe('/?logout=error');
+    expect(res.headers.getSetCookie()).toEqual([EXPIRE]);
+  });
+
+  it('en producción la cookie expirada lleva Secure', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    fetchMock.mockResolvedValue(apiResponse(204));
+    const res = await post();
+    expect(res.headers.getSetCookie()).toEqual([`${EXPIRE}; Secure`]);
   });
 });

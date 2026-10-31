@@ -1,9 +1,17 @@
+import { SESSION_COOKIE } from './account';
 import { apiBaseUrl } from './api';
 import { siteOrigin } from './site';
 
 /** El callback canjea el `code` con Discord (dos llamadas de hasta 8 s cada una en la API). */
 export const AUTH_PROXY_TIMEOUT_MS = 20_000;
 export const LOGIN_ERROR_PATH = '/?login=error';
+export const LOGOUT_ERROR_PATH = '/?logout=error';
+
+/** `bw_session` expirada, con los mismos atributos que pone la API (Secure solo en producción). */
+function expiredSessionCookie(): string {
+  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+  return `${SESSION_COOKIE}=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax${secure}`;
+}
 
 function redirectTo(location: string, status: 302 | 303, setCookies: string[] = []): Response {
   const headers = new Headers({ Location: location, 'Cache-Control': 'no-store' });
@@ -61,12 +69,19 @@ export async function proxyLoginRedirect(
 
 /**
  * POST /auth/logout: reenvía el `Origin` del navegador (la API rechaza uno ajeno) y vuelve a `/` con 303,
- * para que el navegador siga el redirect con GET. La cookie expirada viaja en el `Set-Cookie`.
+ * para que el navegador siga el redirect con GET. Siempre expira `bw_session` (además de los `Set-Cookie` de la
+ * API): aunque la API no haya podido borrar la sesión, el navegador sale y la fila vence sola. Si la API no
+ * respondió o falló (cualquier estado salvo 204, o 401 si la sesión ya no existía) → `/?logout=error`.
  */
 export async function proxyLogout(req: Request): Promise<Response> {
   const headers = { ...forwardedHeaders(req), Origin: req.headers.get('origin') ?? siteOrigin() };
   const res = await callApi('/auth/logout', '/auth/logout', { method: 'POST', headers });
-  if (!res) return redirectTo(LOGIN_ERROR_PATH, 303);
+  if (!res) return redirectTo(LOGOUT_ERROR_PATH, 303, [expiredSessionCookie()]);
   await res.body?.cancel().catch(() => {});
-  return redirectTo('/', 303, res.headers.getSetCookie());
+  const cookies = [...res.headers.getSetCookie(), expiredSessionCookie()];
+  if (res.status !== 204 && res.status !== 401) {
+    console.error('[auth] la API no cerró la sesión', '/auth/logout', res.status);
+    return redirectTo(LOGOUT_ERROR_PATH, 303, cookies);
+  }
+  return redirectTo('/', 303, cookies);
 }
