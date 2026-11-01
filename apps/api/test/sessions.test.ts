@@ -1,12 +1,15 @@
 import { eq } from 'drizzle-orm';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createSessionStore,
   dbCall,
   generateToken,
   hashToken,
   nextExpiry,
+  purgeExpiredSessions,
+  SESSION_PURGE_INTERVAL_MS,
   SESSION_TTL_MS,
+  startSessionPurge,
 } from '../src/community/sessions';
 import { sessions, users } from '../src/db/schema';
 import { AppError } from '../src/errors';
@@ -45,6 +48,38 @@ describe('helpers de sesión', () => {
         throw new AppError('NOT_FOUND');
       }),
     ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+  });
+});
+
+describe('startSessionPurge', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+  const logger = () => ({ info: vi.fn(), warn: vi.fn() });
+
+  it('purga al arrancar y después cada SESSION_PURGE_INTERVAL_MS (6 h); stop corta el ciclo', async () => {
+    expect(SESSION_PURGE_INTERVAL_MS).toBe(6 * 60 * 60 * 1000);
+    const purge = vi.fn(async () => 0);
+    const stop = startSessionPurge({ purge, logger: logger() });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(purge).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(SESSION_PURGE_INTERVAL_MS);
+    expect(purge).toHaveBeenCalledTimes(2);
+    stop();
+    await vi.advanceTimersByTimeAsync(SESSION_PURGE_INTERVAL_MS * 3);
+    expect(purge).toHaveBeenCalledTimes(2);
+  });
+
+  it('loguea cuántas borró solo si borró alguna; un fallo se loguea y no corta el ciclo', async () => {
+    const log = logger();
+    const purge = vi.fn<() => Promise<number>>().mockResolvedValueOnce(0).mockRejectedValueOnce(new Error('caído')).mockResolvedValueOnce(3);
+    const stop = startSessionPurge({ purge, logger: log, intervalMs: 1000 });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(log.info).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(log.warn).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(log.info).toHaveBeenCalledWith({ deleted: 3 }, expect.any(String));
+    stop();
   });
 });
 
@@ -99,5 +134,20 @@ describe.skipIf(!testDb)('SessionStore (MySQL)', () => {
     await testDb!.db.delete(users).where(eq(users.id, id));
     expect(await store.resolve(t1)).toBeNull();
     expect(await store.resolve('basura')).toBeNull();
+  });
+
+  it('purgeExpiredSessions borra solo las vencidas y devuelve cuántas', async () => {
+    clock = Date.UTC(2026, 0, 1);
+    const store = createSessionStore(testDb!.db, now);
+    const id = await newUser();
+    await store.create(id);
+    await store.create(id);
+    clock += 20 * DAY;
+    const fresh = await store.create(id);
+    clock += 11 * DAY; // las dos primeras vencieron (31 días), la última no
+    expect(await purgeExpiredSessions(testDb!.db, now)).toBe(2);
+    const rows = await testDb!.db.select().from(sessions);
+    expect(rows.map((r) => r.id)).toEqual([hashToken(fresh)]);
+    expect(await purgeExpiredSessions(testDb!.db, now)).toBe(0);
   });
 });

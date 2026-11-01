@@ -3,7 +3,7 @@ import { createApp } from './app';
 import { createCachedFetch } from './cache/cached-fetch';
 import { createMemoryCache } from './cache/memory';
 import { createRedisCache } from './cache/redis';
-import { createSessionStore } from './community/sessions';
+import { createSessionStore, purgeExpiredSessions, startSessionPurge } from './community/sessions';
 import { loadConfig } from './config';
 import { createDb } from './db/client';
 import { createHealth } from './health';
@@ -44,6 +44,8 @@ const database = config.databaseUrl ? createDb(config.databaseUrl) : null;
 if (database && !(await database.ping())) {
   logger.warn('MySQL no responde; la API sigue sin Comunidad hasta que vuelva');
 }
+// Las sesiones vencidas que nadie vuelve a usar se borran cada 6 h (con MySQL caído, se reintenta en la próxima).
+const stopSessionPurge = database ? startSessionPurge({ purge: () => purgeExpiredSessions(database.db), logger }) : null;
 const { cachedFetch, isCoolingDown } = createCachedFetch({ cache, logger });
 const services = createServices({ supercell, cachedFetch });
 
