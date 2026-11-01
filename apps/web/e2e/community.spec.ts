@@ -17,13 +17,22 @@ const PLACEMENTS = [
   { name: 'Brock', tier: 'C' },
 ] as const;
 
-/** Login mock: /auth/discord crea la sesión de MockUser (sin pasar por Discord) y redirige a `next`. */
+const header = (page: Page) => page.getByRole('banner');
+
+/**
+ * Login mock: /auth/discord crea la sesión de MockUser (sin pasar por Discord) y redirige a `next`.
+ * Si en un runner lento GET /me pasa los 1500 ms de SESSION_TIMEOUT_MS, la página sale como si no hubiera sesión
+ * (sin "Mi cuenta" y con la estrella guardando en localStorage): se recarga hasta que el servidor la vea.
+ */
 async function login(page: Page, next: string) {
   await gotoReady(page, `/auth/discord?next=${next}`);
   await expect(page).toHaveURL(next);
+  await expect(async () => {
+    if (await header(page).getByRole('link', { name: 'Mi cuenta' }).isVisible()) return;
+    await gotoReady(page, next);
+    await expect(header(page).getByRole('link', { name: 'Mi cuenta' })).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 15_000 });
 }
-
-const header = (page: Page) => page.getByRole('banner');
 
 /** Espera a que termine la Server Action (POST con el header Next-Action) que dispara `act`. */
 async function untilActionDone(page: Page, act: () => Promise<void>) {

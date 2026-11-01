@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { eq } from 'drizzle-orm';
+import { eq, lte } from 'drizzle-orm';
 import type { Db } from '../db/client';
 import { sessions, users } from '../db/schema';
 import { AppError, isAppError } from '../errors';
@@ -8,6 +8,8 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export const SESSION_TTL_MS = 30 * DAY_MS;
 /** Si a la sesión le quedan menos de esto, se extiende a SESSION_TTL_MS. */
 export const SESSION_EXTEND_BELOW_MS = 15 * DAY_MS;
+/** Cada cuánto se borran de MySQL las sesiones vencidas que nadie volvió a usar. */
+export const SESSION_PURGE_INTERVAL_MS = 6 * 60 * 60 * 1000;
 
 export interface SessionUser {
   id: number;
@@ -93,5 +95,45 @@ export function createSessionStore(db: Db, now: () => number = Date.now): Sessio
     async destroy(token) {
       await dbCall(() => db.delete(sessions).where(eq(sessions.id, hashToken(token))));
     },
+  };
+}
+
+/**
+ * Borra las sesiones vencidas y devuelve cuántas. `resolve` ya borra la vencida que se vuelve a usar; esto limpia
+ * las que quedaron abandonadas (otro navegador, cookies borradas), que si no se acumularían para siempre.
+ */
+export async function purgeExpiredSessions(db: Db, now: () => number = Date.now): Promise<number> {
+  const [header] = await dbCall(() => db.delete(sessions).where(lte(sessions.expiresAt, new Date(now()))));
+  return header.affectedRows;
+}
+
+/**
+ * Purga al arrancar y después cada `intervalMs`. Un fallo (MySQL caído) se loguea y se reintenta en la próxima
+ * vuelta. El timer no retiene el proceso; devuelve la función que lo corta.
+ */
+export function startSessionPurge({
+  purge,
+  logger,
+  intervalMs = SESSION_PURGE_INTERVAL_MS,
+}: {
+  purge: () => Promise<number>;
+  logger: { info: (obj: object, msg: string) => void; warn: (obj: object, msg: string) => void };
+  intervalMs?: number;
+}): () => void {
+  const run = () => {
+    purge().then(
+      (deleted) => {
+        if (deleted > 0) logger.info({ deleted }, 'Sesiones vencidas borradas');
+      },
+      (err: unknown) => logger.warn({ err }, 'No se pudieron borrar las sesiones vencidas'),
+    );
+  };
+  const first = setTimeout(run, 0);
+  const timer = setInterval(run, intervalMs);
+  first.unref?.();
+  timer.unref?.();
+  return () => {
+    clearTimeout(first);
+    clearInterval(timer);
   };
 }
