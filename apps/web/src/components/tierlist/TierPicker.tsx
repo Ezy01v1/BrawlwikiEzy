@@ -35,7 +35,13 @@ export function TierPicker({ brawlerName, current, opener, onChoose, onClose }: 
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const back = openerRef.current ?? previous;
     dialogRef.current?.querySelector<HTMLElement>('[aria-pressed="true"]')?.focus();
-    return () => back?.focus();
+    // La página de fondo no se desplaza mientras el modal está abierto (en móvil el dedo arrastraba la grilla).
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = overflow;
+      back?.focus();
+    };
   }, []);
 
   function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {

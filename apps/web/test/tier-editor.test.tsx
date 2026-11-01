@@ -147,6 +147,27 @@ describe('TierEditor', () => {
     expect(card).toHaveFocus();
   });
 
+  it('con el diálogo abierto la página de fondo no se desplaza; al cerrar vuelve como estaba', async () => {
+    const user = userEvent.setup();
+    document.body.style.overflow = 'auto';
+    renderEditor();
+    await user.click(screen.getByRole('button', { name: 'Colt, sin ubicar' }));
+    expect(document.body.style.overflow).toBe('hidden');
+    await user.keyboard('{Escape}');
+    expect(document.body.style.overflow).toBe('auto');
+    document.body.style.overflow = '';
+  });
+
+  it('"Guardar" va en una barra fija abajo, después de las cartas', () => {
+    renderEditor();
+    const bar = screen.getByRole('region', { name: 'Guardar cambios' });
+    expect(bar).toContainElement(save());
+    expect(bar.className).toMatch(/\bsticky\b/);
+    expect(bar.className).toMatch(/\bbottom-/);
+    const cards = screen.getByRole('list', { name: 'Brawlers' });
+    expect(cards.compareDocumentPosition(bar) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it('"Cerrar" y el fondo también cierran sin cambiar nada', async () => {
     const user = userEvent.setup();
     renderEditor();
