@@ -34,11 +34,15 @@ async function login(page: Page, next: string) {
   }).toPass({ timeout: 15_000 });
 }
 
-/** Espera a que termine la Server Action (POST con el header Next-Action) que dispara `act`. */
+/**
+ * Espera la respuesta de la Server Action (POST con el header Next-Action) que dispara `act`. Next corre la acción
+ * antes de mandar los headers, así que con la respuesta alcanza. No se espera `finished()`: el cuerpo es un stream
+ * RSC que en el CI a veces no cierra, y el test colgaba 30 s con el favorito ya guardado.
+ */
 async function untilActionDone(page: Page, act: () => Promise<void>) {
   const response = page.waitForResponse((r) => r.request().method() === 'POST' && !!r.request().headers()['next-action']);
   await act();
-  await (await response).finished();
+  expect((await response).ok()).toBe(true);
 }
 
 test('admin: abre "Temporada E2E" y aparece en el selector de /tierlist', async ({ page }) => {
