@@ -10,7 +10,7 @@ import { HydrationFlag } from '@/components/layout/HydrationFlag';
 import { NavLinks } from '@/components/layout/NavLinks';
 import { getSession } from '@/lib/session';
 import { siteOrigin } from '@/lib/site';
-import { parseTheme, THEME_COOKIE } from '@/lib/theme';
+import { parseTheme, THEME_COLOR, THEME_COOKIE } from '@/lib/theme';
 import './globals.css';
 
 const lilita = Lilita_One({ weight: '400', subsets: ['latin'], variable: '--font-lilita', display: 'swap' });
@@ -22,7 +22,11 @@ export const metadata: Metadata = {
   description: 'Stats de jugadores, clubes y rankings de Brawl Stars. Fan page no oficial.',
 };
 
-export const viewport: Viewport = { themeColor: '#0b0b0f', width: 'device-width', initialScale: 1 };
+/** La barra del navegador toma el fondo del tema elegido (cookie), no siempre el oscuro. */
+export async function generateViewport(): Promise<Viewport> {
+  const theme = parseTheme((await cookies()).get(THEME_COOKIE)?.value);
+  return { themeColor: THEME_COLOR[theme], width: 'device-width', initialScale: 1 };
+}
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const theme = parseTheme((await cookies()).get(THEME_COOKIE)?.value);

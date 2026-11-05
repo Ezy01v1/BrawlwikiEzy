@@ -200,6 +200,15 @@ describe('página /tierlist', () => {
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
 
+    it('404 pidiendo una temporada que no existe → lo dice y lleva a la actual', async () => {
+      setup();
+      getCommunityTierList.mockRejectedValue(new ApiError('NOT_FOUND', 'No existe esa temporada.', { status: 404 }));
+      await renderPage({ season: '99' });
+      expect(screen.getByText('Esa temporada no existe')).toBeInTheDocument();
+      expect(screen.queryByText('Todavía no hay una tier list')).not.toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Ver la temporada actual' })).toHaveAttribute('href', '/tierlist');
+    });
+
     it('DB_UNAVAILABLE → "Comunidad no está disponible ahora"', async () => {
       setup();
       getCommunityTierList.mockRejectedValue(new ApiError('DB_UNAVAILABLE', 'sin base', { status: 503 }));

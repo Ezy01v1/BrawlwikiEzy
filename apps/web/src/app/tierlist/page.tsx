@@ -23,8 +23,9 @@ function parseSeason(value: string | undefined): number | undefined {
 
 export default async function TierListPage({ searchParams }: PageProps<'/tierlist'>) {
   const sp = await searchParams;
+  const requested = parseSeason(first(sp.season));
   const [list, brawlers, seasons, session] = await Promise.all([
-    attempt(getCommunityTierList(parseSeason(first(sp.season)))),
+    attempt(getCommunityTierList(requested)),
     attempt(getBrawlers()),
     attempt(getSeasons()),
     getSession(),
@@ -37,7 +38,12 @@ export default async function TierListPage({ searchParams }: PageProps<'/tierlis
     return (
       <>
         {title}
-        {error.code === 'NOT_FOUND' ? (
+        {error.code === 'NOT_FOUND' && requested !== undefined ? (
+          // Con ?season= el 404 es esa temporada; sin él, que todavía no hay ninguna.
+          <EmptyState title="Esa temporada no existe">
+            <ButtonLink href="/tierlist">Ver la temporada actual</ButtonLink>
+          </EmptyState>
+        ) : error.code === 'NOT_FOUND' ? (
           <EmptyState title="Todavía no hay una tier list">
             Un administrador abrirá la primera temporada y entonces podrás votar.
           </EmptyState>

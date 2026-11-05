@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { parseTheme, type Theme, themeCookie } from '@/lib/theme';
+import { parseTheme, type Theme, THEME_COLOR, themeCookie } from '@/lib/theme';
 
 export function ThemeToggle({ initial = 'dark' }: { initial?: Theme } = {}) {
   const [theme, setTheme] = useState<Theme>(initial);
@@ -15,6 +15,7 @@ export function ThemeToggle({ initial = 'dark' }: { initial?: Theme } = {}) {
   function toggle() {
     document.documentElement.dataset.theme = next;
     document.cookie = themeCookie(next);
+    document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute('content', THEME_COLOR[next]);
     setTheme(next);
   }
 
