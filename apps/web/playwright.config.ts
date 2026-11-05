@@ -29,7 +29,10 @@ export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: 0,
+  // En el CI un tropiezo de timing no deja main en rojo: un fallo real falla las 3 veces, y el que pasa al
+  // reintentar sale como "flaky" en el reporte (con el trace del intento fallido). Los de Comunidad son serial:
+  // un reintento vuelve a correr el grupo desde el primero. Local, sin reintentos para ver todo fallo.
+  retries: process.env.CI ? 2 : 0,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: { baseURL: WEB_URL, locale: 'es-MX', trace: 'retain-on-failure' },
   projects: [
