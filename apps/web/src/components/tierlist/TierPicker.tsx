@@ -73,8 +73,11 @@ export function TierPicker({ brawlerName, current, opener, onChoose, onClose }: 
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        // Enfocable por clic (no por Tab): tocar una parte vacía deja el foco en el diálogo y no en el <body>,
+        // así Escape y la trampa de Tab siguen andando.
+        tabIndex={-1}
         onKeyDown={onKeyDown}
-        className="w-full max-w-sm rounded-card border border-border bg-surface p-4 shadow-lg"
+        className="w-full max-w-sm rounded-card border border-border bg-surface p-4 shadow-lg outline-none"
       >
         <div className="flex items-center justify-between gap-2">
           <h2 id={titleId} className="min-w-0 truncate font-display text-xl">

@@ -147,6 +147,22 @@ describe('TierEditor', () => {
     expect(card).toHaveFocus();
   });
 
+  it('un clic en una parte vacía del diálogo deja el foco adentro: Escape cierra y Tab no se escapa', async () => {
+    const user = userEvent.setup();
+    renderEditor();
+    const card = screen.getByRole('button', { name: 'Colt, sin ubicar' });
+    await user.click(card);
+    const dialog = screen.getByRole('dialog', { name: 'Colt' });
+    await user.click(dialog);
+    expect(dialog).toContainElement(document.activeElement as HTMLElement);
+    await user.tab();
+    expect(dialog).toContainElement(document.activeElement as HTMLElement);
+    await user.click(dialog);
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(card).toHaveFocus();
+  });
+
   it('con el diálogo abierto la página de fondo no se desplaza; al cerrar vuelve como estaba', async () => {
     const user = userEvent.setup();
     document.body.style.overflow = 'auto';

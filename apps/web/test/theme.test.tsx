@@ -1,8 +1,10 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import { parseTheme, themeCookie } from '@/lib/theme';
+import { parseTheme, THEME_COLOR, themeCookie } from '@/lib/theme';
 
 describe('theme', () => {
   beforeEach(() => {
@@ -32,5 +34,24 @@ describe('theme', () => {
     expect(document.documentElement.dataset.theme).toBe('light');
     expect(document.cookie).toContain('theme=light');
     expect(screen.getByRole('button', { name: 'Cambiar a modo oscuro' })).toBeInTheDocument();
+  });
+
+  it('THEME_COLOR coincide con el --bg de cada tema', () => {
+    const css = readFileSync(join(__dirname, '../src/app/globals.css'), 'utf8');
+    const bgs = [...css.matchAll(/--bg: (#[0-9a-f]{6});/g)].map((m) => m[1]);
+    expect(bgs).toEqual([THEME_COLOR.dark, THEME_COLOR.light]);
+  });
+
+  it('ThemeToggle también cambia el color de la barra del navegador (<meta name="theme-color">)', async () => {
+    const meta = document.createElement('meta');
+    meta.name = 'theme-color';
+    meta.content = THEME_COLOR.dark;
+    document.head.append(meta);
+    render(<ThemeToggle />);
+    await userEvent.click(screen.getByRole('button', { name: 'Cambiar a modo claro' }));
+    expect(meta.content).toBe(THEME_COLOR.light);
+    await userEvent.click(screen.getByRole('button', { name: 'Cambiar a modo oscuro' }));
+    expect(meta.content).toBe(THEME_COLOR.dark);
+    meta.remove();
   });
 });
