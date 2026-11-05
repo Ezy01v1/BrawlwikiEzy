@@ -24,6 +24,9 @@ export async function gotoReady(page: Page, path: string) {
 }
 
 export async function expectAccessible(page: Page) {
+  // Tras una navegación del cliente, Next pone el <title> con la metadata, después del contenido: si axe corre en
+  // el medio informa `document-title`. Todas las páginas tienen título, así que se espera a que lo haya.
+  await expect(page).toHaveTitle(/\S/);
   const { violations } = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
     .analyze();
