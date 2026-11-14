@@ -36,8 +36,8 @@ La v1 funciona **solo con la API key oficial de Supercell**, sin base de datos. 
 
 1. **v1 (este documento):** base sin base de datos.
 2. **Comunidad:** MySQL, usuarios, favoritos y tier list votable.
-3. **Acumulación:** guardar battle logs de los jugadores consultados.
-4. **Inteligencia:** recomendador, meta e insights (con transparencia sobre las limitaciones del dataset).
+3. **Acumulación:** guardar battle logs de los jugadores consultados. *Descartado el 2026-11-14: sin un uso concreto para el historial no vale gastar cuota de Supercell ni MySQL. Se retoma solo si aparece algo que se quiera ver con esos datos.*
+4. **Inteligencia:** recomendador, meta e insights (con transparencia sobre las limitaciones del dataset). *En pausa: depende del historial del sub-proyecto 3.*
 
 ---
 
